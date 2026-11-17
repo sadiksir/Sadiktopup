@@ -66,6 +66,7 @@ main{max-width:760px;margin:auto;padding:4px 14px 30px}
 .sel-name{font-weight:800;font-size:16px}
 .sel-unit{color:var(--mut);font-size:13px;margin-top:2px}
 .row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.row[hidden]{display:none}
 .row.col{flex-direction:column;align-items:stretch;gap:6px}
 label{font-size:13px;color:var(--mut);font-weight:600}
 input{width:100%;padding:12px 13px;border-radius:10px;border:1px solid var(--line);background:#0e0e20;color:var(--text);font-size:15px;outline:none}

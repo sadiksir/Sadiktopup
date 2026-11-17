@@ -51,6 +51,9 @@ const LEVELUP = {
   ]
 };
 
+// Level Up Pass ekbar-i kena jay (quantity hide hobe)
+LEVELUP.items.forEach(i => i.single = true);
+
 const ALL_GROUPS = [...GROUPS, MEMBERSHIP, LEVELUP];
 
 /* =====================================================
@@ -98,6 +101,7 @@ function selectItem(it, el) {
   $$(".item").forEach(x => x.classList.remove("selected"));
   el.classList.add("selected");
   $("#qty").value = 1;
+  $("#qtyRow").hidden = !!it.single;
   $("#selName").textContent = it.name;
   $("#selUnit").textContent = "Unit price: " + it.price + " Tk";
   updateTotal();
@@ -108,6 +112,7 @@ function selectItem(it, el) {
 
 /* ---------- Quantity / Total ---------- */
 function getQty() {
+  if (selected && selected.single) return 1;
   let q = parseInt($("#qty").value, 10);
   if (isNaN(q) || q < 1) q = 1;
   if (q > 99) q = 99;

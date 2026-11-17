@@ -6,9 +6,9 @@ const CONFIG = {
   whatsapp: "8801XXXXXXXXX",
   // Payment number gulo (Send Money)
   payments: {
-    bkash:  { name: "bKash",  number: "01XXXXXXXXX" },
-    nagad:  { name: "Nagad",  number: "01XXXXXXXXX" },
-    rocket: { name: "Rocket", number: "01XXXXXXXXXX" }
+    bkash:  { name: "bKash",  number: "01761645666" },
+    nagad:  { name: "Nagad",  number: "01761645666" },
+    rocket: { name: "Rocket", number: "01761645666" }
   }
 };
 

@@ -149,4 +149,31 @@ input:focus{border-color:var(--pri)}
 .snake-btn.active .ic{filter:none}
 .snake-btn:active{transform:scale(.97)}
 
+/* ===== Click zoom animation ===== */
+.zoom-fx{position:fixed;inset:0;z-index:9999;pointer-events:all;opacity:1;transition:opacity .5s ease;background:radial-gradient(circle at 50% 50%,rgba(255,122,0,0) 0%,rgba(11,11,23,0) 100%)}
+.zoom-fx::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,rgba(255,122,0,.45),#0b0b17 75%);opacity:0;transition:opacity .6s ease}
+.zoom-fx.go::before{opacity:1}
+.zoom-ic{position:absolute;line-height:1;will-change:transform,opacity;transform:translate(-50%,-50%);transition:transform .65s cubic-bezier(.5,0,.2,1),opacity .5s ease;filter:drop-shadow(0 0 24px rgba(255,122,0,.9))}
+
+/* ===== Wide screens (desktop / desktop-site mode) ===== */
+@media (min-width:700px){
+  .brand,.tabs,main{max-width:900px}
+  .snake-wrap{max-width:960px;gap:200px;padding-top:90px}
+  .snake-btn{padding:26px 24px;border-radius:26px;gap:16px}
+  .snake-btn .ic{font-size:54px}
+  .snake-btn .tx{font-size:26px}
+  .snake-btn small{font-size:16px}
+  #snakeBase,#snakeLine{stroke-width:11}
+  #snakeHead{r:16px}
+  .hero-sub{font-size:22px}
+  .scroll-hint{font-size:17px}
+  .item{font-size:18px;padding:16px 18px}
+  .group-title{font-size:15px}
+  .notice-line{font-size:18px}
+  .order h2{font-size:22px}
+  label{font-size:15px}
+  input{font-size:17px}
+  .tab{font-size:17px;padding:14px 18px}
+}
+
 footer{text-align:center;color:var(--mut);font-size:12px;padding:20px}

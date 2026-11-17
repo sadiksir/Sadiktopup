@@ -4,32 +4,37 @@
 const CONFIG = {
   // Order ashbe ei WhatsApp number a (country code shoho, + chhara). Example: 8801XXXXXXXXX
   whatsapp: "01761645666",
-  // UID checker API. {uid} er jaygay UID boshbe. Khali ("") rakhle checker off thakbe.
-  // Example: "https://your-api.com/ff?uid={uid}"  -> JSON a nickname/name thakte hobe
-  uidApi: "",
+
   // Payment number gulo (Send Money)
   payments: {
     bkash:  { name: "bKash",  number: "01761645666" },
     nagad:  { name: "Nagad",  number: "01761645666" },
     rocket: { name: "Rocket", number: "01761645666" }
-  }
+  },
+
+  // ---------- UID CHECKER ----------
+  // Third-party API er URL ekhane boshan. {uid} ar {region} auto replace hobe.
+  // Example: "https://your-api.example.com/player?uid={uid}&region={region}"
+  // Khali rakhle checker kaj korbe na (sudhu message dekhabe).
+  uidApi: "",
+  region: "bd",
+  // true hole UID verify na hole order dewa jabe na. false hole check optional.
+  requireUidCheck: false
 };
 
 /* =====================================================
-   DATA — Topup list
+   DATA
    ===================================================== */
 const GROUPS = [
-  { title: "💎 Diamond", icon: "💎", items: [
-    [25,20],[50,35],[100,70]
-  ], split: true },
-  { title: "💎 Diamond", icon: "💎", items: [[115,80],[240,158],[355,237],[480,316]] },
-  { title: "💎 Diamond", icon: "💎", items: [[505,336],[610,400],[725,480],[850,560],[965,639]] },
-  { title: "💎 Diamond", icon: "💎", items: [[1090,718],[1240,800],[1505,980],[1850,1200]] },
-  { title: "💎 Diamond", icon: "💎", items: [[2530,1610],[3140,2010],[3770,2410]] },
-  { title: "💎 Diamond", icon: "💎", items: [[5060,3220],[7590,4830],[10120,6440]] }
-].map(g => ({
-  title: g.title, icon: g.icon,
-  items: g.items.map(([d, p]) => ({ name: d + " Diamond", label: d, price: p }))
+  [[25,20],[50,35],[100,70]],
+  [[115,80],[240,158],[355,237],[480,316]],
+  [[505,336],[610,400],[725,480],[850,560],[965,639]],
+  [[1090,718],[1240,800],[1505,980],[1850,1200]],
+  [[2530,1610],[3140,2010],[3770,2410]],
+  [[5060,3220],[7590,4830],[10120,6440]]
+].map(items => ({
+  title: "💎 Diamond", icon: "💎",
+  items: items.map(([d, p]) => ({ name: d + " Diamond", label: d, price: p }))
 }));
 
 const MEMBERSHIP = {
@@ -53,72 +58,108 @@ const LEVELUP = {
     { name: "All Level (1270)", label: "All Level (1270)", price: 385 }
   ]
 };
-
 // Level Up Pass ekbar-i kena jay (quantity hide hobe)
 LEVELUP.items.forEach(i => i.single = true);
 
 const ALL_GROUPS = [...GROUPS, MEMBERSHIP, LEVELUP];
 
 /* =====================================================
-   STATE + HELPERS
+   HELPERS
    ===================================================== */
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 let selected = null;
 let payment = null;
 
-/* ---------- Sticky nav + snake slider ---------- */
-const nav = $("#snav"), navBtns = $$(".nb"), slider = $("#slider");
-let curNav = -1;
-
-function placeSlider(i, animate = true) {
-  const b = navBtns[i];
-  const nr = nav.getBoundingClientRect(), r = b.getBoundingClientRect();
-  const left = r.left - nr.left, right = nr.right - r.right;
-  const goingRight = i > curNav;
-  const fast = ".28s cubic-bezier(.3,.9,.3,1)", slow = ".5s .1s cubic-bezier(.3,.9,.3,1)";
-  slider.style.transition = !animate ? "none"
-    : goingRight ? `right ${fast}, left ${slow}` : `left ${fast}, right ${slow}`;
-  slider.style.left = left + "px";
-  slider.style.right = right + "px";
-  navBtns.forEach((x, k) => x.classList.toggle("active", k === i));
-  curNav = i;
+/* ---------- Pages / Tabs ---------- */
+function showPage(id) {
+  $$(".tab").forEach(b => b.classList.toggle("active", b.dataset.tab === id));
+  $$(".page").forEach(p => p.classList.toggle("active", p.id === id));
+  document.body.classList.toggle("is-home", id === "home");
+  window.scrollTo({ top: 0, behavior: "auto" });
+  if (id === "home") setTimeout(buildSnake, 30);
 }
-function spy() {
-  const topOthers = $("#others").getBoundingClientRect().top;
-  const atBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4;
-  const i = (topOthers - nav.offsetHeight - 120 <= 0 || atBottom) ? 1 : 0;
-  if (i !== curNav) placeSlider(i);
-}
-navBtns.forEach(b => b.addEventListener("click", () =>
-  $("#" + b.dataset.target).scrollIntoView({ behavior: "smooth", block: "start" })));
-window.addEventListener("scroll", spy, { passive: true });
-window.addEventListener("resize", () => placeSlider(curNav, false));
-placeSlider(0, false);
+$$(".tab").forEach(btn => btn.addEventListener("click", () => showPage(btn.dataset.tab)));
+$$("[data-go]").forEach(btn => btn.addEventListener("click", () => showPage(btn.dataset.go)));
+$("#brandHome").addEventListener("click", () => showPage("home"));
 
-/* ---------- UID checker ---------- */
-let uidName = null;
-function setUidMsg(t, cls) { const el = $("#uidRes"); el.textContent = t; el.className = "uid-res " + (cls || ""); }
-$("#gameId").addEventListener("input", () => { uidName = null; setUidMsg(""); });
-$("#uidBtn").addEventListener("click", async () => {
-  const uid = $("#gameId").value.trim();
-  if (uid.length < 6) return setUidMsg("Age sothik UID din.", "bad");
-  if (!CONFIG.uidApi) return setUidMsg("UID checker ekhono chalu kora hoyni.", "info");
-  const btn = $("#uidBtn");
-  btn.disabled = true; setUidMsg("Checking...", "info");
-  try {
-    const res = await fetch(CONFIG.uidApi.replace("{uid}", encodeURIComponent(uid)));
-    const d = await res.json();
-    const name = d.nickname || d.name || d.player_name || (d.data && (d.data.nickname || d.data.name));
-    if (res.ok && name) { uidName = name; setUidMsg("✅ Player: " + name, "ok"); }
-    else setUidMsg("❌ UID paoya jayni. Abar check korun.", "bad");
-  } catch (e) {
-    setUidMsg("Checker kaj korche na. Pore abar chesta korun.", "bad");
+/* =====================================================
+   SNAKE LINE (scroll animation)
+   ===================================================== */
+const snakeBox = $("#snake");
+const snakePath = $("#snakePath");
+const snakeTrack = $("#snakeTrack");
+const snakeHead = $("#snakeHead");
+const snakeSvg = $("#snakeSvg");
+let snakeTotal = 0;
+let snakeTops = [];
+let snakeItems = [];
+
+function buildSnake() {
+  if (!snakeBox.offsetHeight) return;
+  snakeItems = $$(".s-item", snakeBox);
+  const W = snakeBox.clientWidth, H = snakeBox.clientHeight;
+
+  const pts = [{ x: W / 2, y: 0 }];
+  snakeItems.forEach(it => pts.push({
+    x: it.offsetLeft + it.offsetWidth / 2,
+    y: it.offsetTop + it.offsetHeight / 2
+  }));
+  pts.push({ x: W / 2, y: H });
+
+  // aka-baka (S-curve) path: protiti button er majhkhan diye jay
+  let d = `M${pts[0].x},${pts[0].y}`;
+  for (let i = 1; i < pts.length; i++) {
+    const a = pts[i - 1], b = pts[i], m = (a.y + b.y) / 2;
+    d += ` C${a.x},${m} ${b.x},${m} ${b.x},${b.y}`;
   }
-  btn.disabled = false;
-});
+  snakeSvg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  snakeSvg.setAttribute("preserveAspectRatio", "none");
+  snakeTrack.setAttribute("d", d);
+  snakePath.setAttribute("d", d);
+  snakeTotal = snakePath.getTotalLength();
+  snakePath.style.strokeDasharray = snakeTotal;
+  snakeTops = snakeItems.map(it => it.offsetTop);
+  updateSnake();
+}
 
-/* ---------- Render lists ---------- */
+function updateSnake() {
+  if (!snakeTotal || !$("#home").classList.contains("active")) return;
+  const H = snakeBox.clientHeight;
+  const rect = snakeBox.getBoundingClientRect();
+  let targetY = window.innerHeight * 0.62 - rect.top;
+  const atBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4;
+  if (atBottom) targetY = H;
+  targetY = Math.max(0, Math.min(H, targetY));
+
+  // path er y bariye jay, tai binary search diye head er position ber kori
+  let lo = 0, hi = snakeTotal;
+  for (let i = 0; i < 22; i++) {
+    const mid = (lo + hi) / 2;
+    if (snakePath.getPointAtLength(mid).y < targetY) lo = mid; else hi = mid;
+  }
+  const len = hi;
+  const pt = snakePath.getPointAtLength(len);
+  snakePath.style.strokeDashoffset = snakeTotal - len;
+  snakeHead.setAttribute("cx", pt.x);
+  snakeHead.setAttribute("cy", pt.y);
+
+  // snake button e touch korle highlight, upore gele highlight chole jay
+  snakeItems.forEach((it, i) => it.classList.toggle("lit", pt.y >= snakeTops[i] + 12));
+}
+
+let ticking = false;
+window.addEventListener("scroll", () => {
+  if (ticking) return;
+  ticking = true;
+  requestAnimationFrame(() => { updateSnake(); ticking = false; });
+}, { passive: true });
+window.addEventListener("resize", buildSnake);
+window.addEventListener("load", buildSnake);
+
+/* =====================================================
+   TOPUP
+   ===================================================== */
 function renderLists() {
   const wrap = $("#lists");
   wrap.innerHTML = "";
@@ -142,7 +183,6 @@ function renderLists() {
   });
 }
 
-/* ---------- Select item ---------- */
 function selectItem(it, el) {
   selected = it;
   $$(".item").forEach(x => x.classList.remove("selected"));
@@ -172,7 +212,7 @@ function updateTotal() {
 }
 $("#qMinus").onclick = () => { $("#qty").value = Math.max(1, getQty() - 1); updateTotal(); };
 $("#qPlus").onclick  = () => { $("#qty").value = Math.min(99, getQty() + 1); updateTotal(); };
-$("#qty").addEventListener("input", () => { if ($("#qty").value !== "") { $("#qty").value = getQty(); } updateTotal(); });
+$("#qty").addEventListener("input", () => { if ($("#qty").value !== "") $("#qty").value = getQty(); updateTotal(); });
 $("#qty").addEventListener("blur", () => { $("#qty").value = getQty(); updateTotal(); });
 
 /* ---------- Payment ---------- */
@@ -207,12 +247,76 @@ $("#copyBtn").onclick = async () => {
   setTimeout(() => $("#copyBtn").textContent = "Copy", 1500);
 };
 
-/* ---------- Input filters ---------- */
-["#gameId", "#sender"].forEach(s =>
-  $(s).addEventListener("input", e => e.target.value = e.target.value.replace(/\D/g, ""))
-);
+/* =====================================================
+   UID CHECKER
+   ===================================================== */
+const uidState = { uid: "", name: "", verified: false };
 
-/* ---------- Submit ---------- */
+function setUidRes(text, cls) {
+  const el = $("#uidRes");
+  el.textContent = text;
+  el.className = "uid-res " + (cls || "");
+}
+
+function pickName(j) {
+  if (!j || typeof j !== "object") return "";
+  const c = [
+    j.nickname, j.name, j.player_name, j.playerName, j.username, j.player,
+    j.data && (j.data.nickname || j.data.name || j.data.player_name),
+    j.basicInfo && j.basicInfo.nickname,
+    j.result && (j.result.nickname || j.result.name),
+    j.account && (j.account.nickname || j.account.name)
+  ];
+  return c.find(v => typeof v === "string" && v.trim()) || "";
+}
+
+async function checkUid() {
+  const uid = $("#gameId").value.trim();
+  uidState.verified = false; uidState.name = ""; uidState.uid = uid;
+
+  if (uid.length < 6) { setUidRes("Sothik UID din.", "bad"); return; }
+  if (!CONFIG.uidApi) { setUidRes("UID checker chalu kora nei (script.js e uidApi boshan).", "warn"); return; }
+
+  setUidRes("Checking...", "");
+  const btn = $("#uidBtn"); btn.disabled = true;
+  try {
+    const url = CONFIG.uidApi
+      .replace("{uid}", encodeURIComponent(uid))
+      .replace("{region}", encodeURIComponent(CONFIG.region));
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 12000);
+    const res = await fetch(url, { signal: ctrl.signal });
+    clearTimeout(t);
+    const json = await res.json();
+    const name = pickName(json);
+    if ($("#gameId").value.trim() !== uid) return; // check cholar somoy UID bodle gele
+    if (name) {
+      uidState.verified = true; uidState.name = name;
+      setUidRes("✅ Player: " + name, "ok");
+    } else {
+      setUidRes("❌ Ei UID paoa jay nai. Abar check korun.", "bad");
+    }
+  } catch (e) {
+    setUidRes("⚠️ Checker connect hoy nai. Pore abar try korun.", "warn");
+  } finally {
+    btn.disabled = false;
+  }
+}
+$("#uidBtn").onclick = checkUid;
+
+let uidTimer;
+$("#gameId").addEventListener("input", e => {
+  e.target.value = e.target.value.replace(/\D/g, "");
+  uidState.verified = false;
+  setUidRes("", "");
+  clearTimeout(uidTimer);
+  if (CONFIG.uidApi && e.target.value.length >= 8) uidTimer = setTimeout(checkUid, 700);
+});
+$("#sender").addEventListener("input", e => e.target.value = e.target.value.replace(/\D/g, ""));
+
+/* =====================================================
+   SUBMIT
+   ===================================================== */
 $("#submitBtn").onclick = () => {
   const err = $("#err");
   const uid = $("#gameId").value.trim();
@@ -220,21 +324,23 @@ $("#submitBtn").onclick = () => {
   const trx = $("#trx").value.trim();
 
   err.textContent = "";
-  if (!selected)                        return err.textContent = "Age ekta package select korun.";
-  if (uid.length < 6)                   return err.textContent = "Sothik Game ID din (shudhu number).";
-  if (CONFIG.uidApi && !uidName)        return err.textContent = "Age UID Check button chepe verify korun.";
-  if (!payment)                         return err.textContent = "Payment method select korun.";
-  if (!/^01\d{9}$/.test(sender))        return err.textContent = "Sothik 11 digit number din (01XXXXXXXXX).";
-  if (trx.length < 6)                   return err.textContent = "Transaction ID din.";
+  if (!selected)                 return err.textContent = "Age ekta package select korun.";
+  if (uid.length < 6)            return err.textContent = "Sothik Game ID din (shudhu number).";
+  if (CONFIG.uidApi && CONFIG.requireUidCheck && !(uidState.verified && uidState.uid === uid))
+                                 return err.textContent = "Age 'Check UID' diye UID verify korun.";
+  if (!payment)                  return err.textContent = "Payment method select korun.";
+  if (!/^01\d{9}$/.test(sender)) return err.textContent = "Sothik 11 digit number din (01XXXXXXXXX).";
+  if (trx.length < 6)            return err.textContent = "Transaction ID din.";
 
   const qty = getQty();
+  const playerLine = uidState.verified && uidState.uid === uid ? `\n👤 Player: ${uidState.name}` : "";
   const msg =
 `🛒 *NEW ORDER*
 ━━━━━━━━━━━━
 📦 Package: ${selected.name}
 🔢 Quantity: ${qty}
 💰 Total: ${total()} Tk
-🆔 Game ID: ${uid}${uidName ? " (" + uidName + ")" : ""}
+🆔 Game ID: ${uid}${playerLine}
 💳 Method: ${CONFIG.payments[payment].name}
 📱 Sender: ${sender}
 🧾 TrxID: ${trx}`;

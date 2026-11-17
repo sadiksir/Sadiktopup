@@ -16,7 +16,7 @@ const CONFIG = {
   // Third-party API er URL ekhane boshan. {uid} ar {region} auto replace hobe.
   // Example: "https://your-api.example.com/player?uid={uid}&region={region}"
   // Khali rakhle checker kaj korbe na (sudhu message dekhabe).
-  uidApi: "https://api.neferbyte.com/game-id-checker/{game}/{id}/{server?}",
+  uidApi: "https://api.gameskinbo.com/ff-info/get?uid=2312730961&region=BD?}",
   region: "bd",
   // true hole UID verify na hole order dewa jabe na. false hole check optional.
   requireUidCheck: false

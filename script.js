@@ -2,39 +2,33 @@
    CONFIG — ekhane nijer info boshan
    ===================================================== */
 const CONFIG = {
+  // UID checker er Cloudflare Worker URL (worker.js dekhun). API key ekhane BOSHBEN NA.
+  uidApi: "https://YOUR-WORKER.YOUR-NAME.workers.dev",
   // Order ashbe ei WhatsApp number a (country code shoho, + chhara). Example: 8801XXXXXXXXX
   whatsapp: "01761645666",
-
   // Payment number gulo (Send Money)
   payments: {
     bkash:  { name: "bKash",  number: "01761645666" },
     nagad:  { name: "Nagad",  number: "01761645666" },
     rocket: { name: "Rocket", number: "01761645666" }
-  },
-
-  // ---------- UID CHECKER ----------
-  // Third-party API er URL ekhane boshan. {uid} ar {region} auto replace hobe.
-  // Example: "https://your-api.example.com/player?uid={uid}&region={region}"
-  // Khali rakhle checker kaj korbe na (sudhu message dekhabe).
-  uidApi: "https://api.gameskinbo.com/ff-info/get?uid=2312730961&region=BD?}",
-  region: "bd",
-  // true hole UID verify na hole order dewa jabe na. false hole check optional.
-  requireUidCheck: false
+  }
 };
 
 /* =====================================================
-   DATA
+   DATA — Topup list
    ===================================================== */
 const GROUPS = [
-  [[25,20],[50,35],[100,70]],
-  [[115,80],[240,158],[355,237],[480,316]],
-  [[505,336],[610,400],[725,480],[850,560],[965,639]],
-  [[1090,718],[1240,800],[1505,980],[1850,1200]],
-  [[2530,1610],[3140,2010],[3770,2410]],
-  [[5060,3220],[7590,4830],[10120,6440]]
-].map(items => ({
-  title: "💎 Diamond", icon: "💎",
-  items: items.map(([d, p]) => ({ name: d + " Diamond", label: d, price: p }))
+  { title: "💎 Diamond", icon: "💎", items: [
+    [25,20],[50,35],[100,70]
+  ], split: true },
+  { title: "💎 Diamond", icon: "💎", items: [[115,80],[240,158],[355,237],[480,316]] },
+  { title: "💎 Diamond", icon: "💎", items: [[505,336],[610,400],[725,480],[850,560],[965,639]] },
+  { title: "💎 Diamond", icon: "💎", items: [[1090,718],[1240,800],[1505,980],[1850,1200]] },
+  { title: "💎 Diamond", icon: "💎", items: [[2530,1610],[3140,2010],[3770,2410]] },
+  { title: "💎 Diamond", icon: "💎", items: [[5060,3220],[7590,4830],[10120,6440]] }
+].map(g => ({
+  title: g.title, icon: g.icon,
+  items: g.items.map(([d, p]) => ({ name: d + " Diamond", label: d, price: p }))
 }));
 
 const MEMBERSHIP = {
@@ -58,108 +52,28 @@ const LEVELUP = {
     { name: "All Level (1270)", label: "All Level (1270)", price: 385 }
   ]
 };
+
 // Level Up Pass ekbar-i kena jay (quantity hide hobe)
 LEVELUP.items.forEach(i => i.single = true);
 
 const ALL_GROUPS = [...GROUPS, MEMBERSHIP, LEVELUP];
 
 /* =====================================================
-   HELPERS
+   STATE + HELPERS
    ===================================================== */
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 let selected = null;
 let payment = null;
 
-/* ---------- Pages / Tabs ---------- */
-function showPage(id) {
-  $$(".tab").forEach(b => b.classList.toggle("active", b.dataset.tab === id));
-  $$(".page").forEach(p => p.classList.toggle("active", p.id === id));
-  document.body.classList.toggle("is-home", id === "home");
-  window.scrollTo({ top: 0, behavior: "auto" });
-  if (id === "home") setTimeout(buildSnake, 30);
-}
-$$(".tab").forEach(btn => btn.addEventListener("click", () => showPage(btn.dataset.tab)));
-$$("[data-go]").forEach(btn => btn.addEventListener("click", () => showPage(btn.dataset.go)));
-$("#brandHome").addEventListener("click", () => showPage("home"));
+/* ---------- Tabs ---------- */
+$$(".tab").forEach(btn => btn.addEventListener("click", () => {
+  $$(".tab").forEach(b => b.classList.toggle("active", b === btn));
+  $$(".page").forEach(p => p.classList.toggle("active", p.id === btn.dataset.tab));
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}));
 
-/* =====================================================
-   SNAKE LINE (scroll animation)
-   ===================================================== */
-const snakeBox = $("#snake");
-const snakePath = $("#snakePath");
-const snakeTrack = $("#snakeTrack");
-const snakeHead = $("#snakeHead");
-const snakeSvg = $("#snakeSvg");
-let snakeTotal = 0;
-let snakeTops = [];
-let snakeItems = [];
-
-function buildSnake() {
-  if (!snakeBox.offsetHeight) return;
-  snakeItems = $$(".s-item", snakeBox);
-  const W = snakeBox.clientWidth, H = snakeBox.clientHeight;
-
-  const pts = [{ x: W / 2, y: 0 }];
-  snakeItems.forEach(it => pts.push({
-    x: it.offsetLeft + it.offsetWidth / 2,
-    y: it.offsetTop + it.offsetHeight / 2
-  }));
-  pts.push({ x: W / 2, y: H });
-
-  // aka-baka (S-curve) path: protiti button er majhkhan diye jay
-  let d = `M${pts[0].x},${pts[0].y}`;
-  for (let i = 1; i < pts.length; i++) {
-    const a = pts[i - 1], b = pts[i], m = (a.y + b.y) / 2;
-    d += ` C${a.x},${m} ${b.x},${m} ${b.x},${b.y}`;
-  }
-  snakeSvg.setAttribute("viewBox", `0 0 ${W} ${H}`);
-  snakeSvg.setAttribute("preserveAspectRatio", "none");
-  snakeTrack.setAttribute("d", d);
-  snakePath.setAttribute("d", d);
-  snakeTotal = snakePath.getTotalLength();
-  snakePath.style.strokeDasharray = snakeTotal;
-  snakeTops = snakeItems.map(it => it.offsetTop);
-  updateSnake();
-}
-
-function updateSnake() {
-  if (!snakeTotal || !$("#home").classList.contains("active")) return;
-  const H = snakeBox.clientHeight;
-  const rect = snakeBox.getBoundingClientRect();
-  let targetY = window.innerHeight * 0.62 - rect.top;
-  const atBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4;
-  if (atBottom) targetY = H;
-  targetY = Math.max(0, Math.min(H, targetY));
-
-  // path er y bariye jay, tai binary search diye head er position ber kori
-  let lo = 0, hi = snakeTotal;
-  for (let i = 0; i < 22; i++) {
-    const mid = (lo + hi) / 2;
-    if (snakePath.getPointAtLength(mid).y < targetY) lo = mid; else hi = mid;
-  }
-  const len = hi;
-  const pt = snakePath.getPointAtLength(len);
-  snakePath.style.strokeDashoffset = snakeTotal - len;
-  snakeHead.setAttribute("cx", pt.x);
-  snakeHead.setAttribute("cy", pt.y);
-
-  // snake button e touch korle highlight, upore gele highlight chole jay
-  snakeItems.forEach((it, i) => it.classList.toggle("lit", pt.y >= snakeTops[i] + 12));
-}
-
-let ticking = false;
-window.addEventListener("scroll", () => {
-  if (ticking) return;
-  ticking = true;
-  requestAnimationFrame(() => { updateSnake(); ticking = false; });
-}, { passive: true });
-window.addEventListener("resize", buildSnake);
-window.addEventListener("load", buildSnake);
-
-/* =====================================================
-   TOPUP
-   ===================================================== */
+/* ---------- Render lists ---------- */
 function renderLists() {
   const wrap = $("#lists");
   wrap.innerHTML = "";
@@ -183,6 +97,7 @@ function renderLists() {
   });
 }
 
+/* ---------- Select item ---------- */
 function selectItem(it, el) {
   selected = it;
   $$(".item").forEach(x => x.classList.remove("selected"));
@@ -212,7 +127,7 @@ function updateTotal() {
 }
 $("#qMinus").onclick = () => { $("#qty").value = Math.max(1, getQty() - 1); updateTotal(); };
 $("#qPlus").onclick  = () => { $("#qty").value = Math.min(99, getQty() + 1); updateTotal(); };
-$("#qty").addEventListener("input", () => { if ($("#qty").value !== "") $("#qty").value = getQty(); updateTotal(); });
+$("#qty").addEventListener("input", () => { if ($("#qty").value !== "") { $("#qty").value = getQty(); } updateTotal(); });
 $("#qty").addEventListener("blur", () => { $("#qty").value = getQty(); updateTotal(); });
 
 /* ---------- Payment ---------- */
@@ -247,76 +162,12 @@ $("#copyBtn").onclick = async () => {
   setTimeout(() => $("#copyBtn").textContent = "Copy", 1500);
 };
 
-/* =====================================================
-   UID CHECKER
-   ===================================================== */
-const uidState = { uid: "", name: "", verified: false };
+/* ---------- Input filters ---------- */
+["#gameId", "#sender"].forEach(s =>
+  $(s).addEventListener("input", e => e.target.value = e.target.value.replace(/\D/g, ""))
+);
 
-function setUidRes(text, cls) {
-  const el = $("#uidRes");
-  el.textContent = text;
-  el.className = "uid-res " + (cls || "");
-}
-
-function pickName(j) {
-  if (!j || typeof j !== "object") return "";
-  const c = [
-    j.nickname, j.name, j.player_name, j.playerName, j.username, j.player,
-    j.data && (j.data.nickname || j.data.name || j.data.player_name),
-    j.basicInfo && j.basicInfo.nickname,
-    j.result && (j.result.nickname || j.result.name),
-    j.account && (j.account.nickname || j.account.name)
-  ];
-  return c.find(v => typeof v === "string" && v.trim()) || "";
-}
-
-async function checkUid() {
-  const uid = $("#gameId").value.trim();
-  uidState.verified = false; uidState.name = ""; uidState.uid = uid;
-
-  if (uid.length < 6) { setUidRes("Sothik UID din.", "bad"); return; }
-  if (!CONFIG.uidApi) { setUidRes("UID checker chalu kora nei (script.js e uidApi boshan).", "warn"); return; }
-
-  setUidRes("Checking...", "");
-  const btn = $("#uidBtn"); btn.disabled = true;
-  try {
-    const url = CONFIG.uidApi
-      .replace("{uid}", encodeURIComponent(uid))
-      .replace("{region}", encodeURIComponent(CONFIG.region));
-    const ctrl = new AbortController();
-    const t = setTimeout(() => ctrl.abort(), 12000);
-    const res = await fetch(url, { signal: ctrl.signal });
-    clearTimeout(t);
-    const json = await res.json();
-    const name = pickName(json);
-    if ($("#gameId").value.trim() !== uid) return; // check cholar somoy UID bodle gele
-    if (name) {
-      uidState.verified = true; uidState.name = name;
-      setUidRes("✅ Player: " + name, "ok");
-    } else {
-      setUidRes("❌ Ei UID paoa jay nai. Abar check korun.", "bad");
-    }
-  } catch (e) {
-    setUidRes("⚠️ Checker connect hoy nai. Pore abar try korun.", "warn");
-  } finally {
-    btn.disabled = false;
-  }
-}
-$("#uidBtn").onclick = checkUid;
-
-let uidTimer;
-$("#gameId").addEventListener("input", e => {
-  e.target.value = e.target.value.replace(/\D/g, "");
-  uidState.verified = false;
-  setUidRes("", "");
-  clearTimeout(uidTimer);
-  if (CONFIG.uidApi && e.target.value.length >= 8) uidTimer = setTimeout(checkUid, 700);
-});
-$("#sender").addEventListener("input", e => e.target.value = e.target.value.replace(/\D/g, ""));
-
-/* =====================================================
-   SUBMIT
-   ===================================================== */
+/* ---------- Submit ---------- */
 $("#submitBtn").onclick = () => {
   const err = $("#err");
   const uid = $("#gameId").value.trim();
@@ -324,23 +175,22 @@ $("#submitBtn").onclick = () => {
   const trx = $("#trx").value.trim();
 
   err.textContent = "";
-  if (!selected)                 return err.textContent = "Age ekta package select korun.";
-  if (uid.length < 6)            return err.textContent = "Sothik Game ID din (shudhu number).";
-  if (CONFIG.uidApi && CONFIG.requireUidCheck && !(uidState.verified && uidState.uid === uid))
-                                 return err.textContent = "Age 'Check UID' diye UID verify korun.";
-  if (!payment)                  return err.textContent = "Payment method select korun.";
-  if (!/^01\d{9}$/.test(sender)) return err.textContent = "Sothik 11 digit number din (01XXXXXXXXX).";
-  if (trx.length < 6)            return err.textContent = "Transaction ID din.";
+  if (!selected)                        return err.textContent = "Age ekta package select korun.";
+  if (uid.length < 6)                   return err.textContent = "Sothik Game ID din (shudhu number).";
+  if (!payment)                         return err.textContent = "Payment method select korun.";
+  if (!/^01\d{9}$/.test(sender))        return err.textContent = "Sothik 11 digit number din (01XXXXXXXXX).";
+  if (trx.length < 6)                   return err.textContent = "Transaction ID din.";
 
+  if (!uidVerified || uidVerified.uid !== uid) return err.textContent = "Age UID 'Check' button chepe verify korun.";
   const qty = getQty();
-  const playerLine = uidState.verified && uidState.uid === uid ? `\n👤 Player: ${uidState.name}` : "";
   const msg =
 `🛒 *NEW ORDER*
 ━━━━━━━━━━━━
 📦 Package: ${selected.name}
 🔢 Quantity: ${qty}
 💰 Total: ${total()} Tk
-🆔 Game ID: ${uid}${playerLine}
+🆔 Game ID: ${uid}
+👤 Name: ${uidVerified.name}
 💳 Method: ${CONFIG.payments[payment].name}
 📱 Sender: ${sender}
 🧾 TrxID: ${trx}`;
@@ -348,6 +198,164 @@ $("#submitBtn").onclick = () => {
   window.open(`https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(msg)}`, "_blank");
 };
 
+/* ---------- UID Checker ---------- */
+let uidVerified = null;
+
+function deepFind(obj, keys) {
+  const want = keys.map(k => k.toLowerCase());
+  const stack = [obj];
+  while (stack.length) {
+    const cur = stack.shift();
+    if (cur && typeof cur === "object") {
+      for (const [k, v] of Object.entries(cur)) {
+        if (want.includes(k.toLowerCase()) && (typeof v === "string" || typeof v === "number") && String(v).trim() !== "") return v;
+        if (v && typeof v === "object") stack.push(v);
+      }
+    }
+  }
+  return null;
+}
+
+function setUidResult(cls, html) {
+  const el = $("#uidResult");
+  el.className = "uid-result " + cls;
+  el.innerHTML = html;
+}
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+$("#gameId").addEventListener("input", () => { uidVerified = null; setUidResult("", ""); });
+
+$("#checkUid").onclick = async () => {
+  const uid = $("#gameId").value.trim();
+  if (uid.length < 6) return setUidResult("bad", "❌ Sothik UID din.");
+  const btn = $("#checkUid");
+  btn.disabled = true;
+  setUidResult("load", "⏳ Checking...");
+  try {
+    const r = await fetch(`${CONFIG.uidApi}?uid=${encodeURIComponent(uid)}`);
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error || data.message || "Request failed");
+    const name = deepFind(data, ["nickname", "nickName", "player_name", "playerName", "account_name", "accountName", "name"]);
+    const level = deepFind(data, ["level", "account_level", "accountLevel"]);
+    if (!name) throw new Error("Ei UID er player paoa jay nai.");
+    uidVerified = { uid, name: String(name) };
+    setUidResult("ok", `✅ ${esc(name)}${level ? " &bull; Level " + esc(level) : ""}`);
+  } catch (e) {
+    uidVerified = null;
+    setUidResult("bad", "❌ " + esc(e.message || "UID check kora jay nai. Abar chesta korun."));
+  } finally {
+    btn.disabled = false;
+  }
+};
+
+/* ---------- Home / Snake ---------- */
+const wrap = $("#snakeWrap"), svg = $("#snakeSvg"), sLine = $("#snakeLine"),
+      sBase = $("#snakeBase"), sHead = $("#snakeHead");
+let table = [], sTotal = 0, sBtns = [], homeScroll = 0;
+
+function catmull(pts) {
+  let d = `M ${pts[0][0]} ${pts[0][1]}`;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[i - 1] || pts[i], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2] || p2;
+    const c1 = [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6];
+    const c2 = [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6];
+    d += ` C ${c1[0]} ${c1[1]}, ${c2[0]} ${c2[1]}, ${p2[0]} ${p2[1]}`;
+  }
+  return d;
+}
+
+function buildSnake() {
+  if (!$("#home").classList.contains("active")) return;
+  const W = wrap.clientWidth, H = wrap.clientHeight, wr = wrap.getBoundingClientRect();
+  svg.setAttribute("width", W); svg.setAttribute("height", H);
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+
+  sBtns = $$(".snake-btn", wrap).map(el => {
+    const r = el.getBoundingClientRect(), left = el.classList.contains("left");
+    return { el, y: r.top - wr.top + r.height / 2, x: left ? (r.right - wr.left - 10) : (r.left - wr.left + 10) };
+  });
+
+  // snake: aka-baka path, prottek button er edge chhuye jay
+  const amp = W * 0.13;
+  const pts = [[W / 2, 0]];
+  let px = W / 2, py = 0, sign = 1;
+  [...sBtns.map(b => [b.x, b.y]), [W / 2, H]].forEach(([x, y]) => {
+    for (const t of [1 / 3, 2 / 3]) {
+      pts.push([px + (x - px) * t + sign * amp, py + (y - py) * t]);
+      sign = -sign;
+    }
+    pts.push([x, y]);
+    px = x; py = y;
+  });
+  const d = catmull(pts);
+  sBase.setAttribute("d", d);
+  sLine.setAttribute("d", d);
+
+  sTotal = sLine.getTotalLength();
+  sLine.style.strokeDasharray = sTotal;
+  sLine.style.strokeDashoffset = sTotal;
+
+  // length -> y lookup table (monotonic)
+  table = [];
+  let maxY = -1;
+  const N = 600;
+  for (let i = 0; i <= N; i++) {
+    const len = sTotal * i / N, p = sLine.getPointAtLength(len);
+    maxY = Math.max(maxY, p.y);
+    table.push({ len, y: maxY });
+  }
+  sBtns.forEach(b => b.len = lenAtY(b.y));
+  updateSnake();
+}
+
+function lenAtY(y) {
+  let lo = 0, hi = table.length - 1;
+  if (table[hi].y < y) return sTotal;
+  while (lo < hi) {
+    const m = (lo + hi) >> 1;
+    if (table[m].y >= y) hi = m; else lo = m + 1;
+  }
+  return table[lo].len;
+}
+
+function updateSnake() {
+  if (!sTotal || !$("#home").classList.contains("active")) return;
+  const top = wrap.getBoundingClientRect().top;
+  const headY = window.innerHeight * 0.72 - top;
+  const drawn = headY > 0 ? lenAtY(headY) : 0;
+  sLine.style.strokeDashoffset = sTotal - drawn;
+  const p = sLine.getPointAtLength(drawn);
+  sHead.setAttribute("cx", p.x); sHead.setAttribute("cy", p.y);
+  sHead.style.opacity = headY > 0 && drawn < sTotal ? 1 : 0;
+  sBtns.forEach(b => b.el.classList.toggle("active", headY > 0 && drawn >= b.len - 1));
+}
+
+let ticking = false;
+window.addEventListener("scroll", () => {
+  if (ticking) return;
+  ticking = true;
+  requestAnimationFrame(() => { updateSnake(); ticking = false; });
+}, { passive: true });
+window.addEventListener("resize", buildSnake);
+window.addEventListener("load", buildSnake);
+
+function openApp(tab) {
+  homeScroll = window.scrollY;
+  $("#home").classList.remove("active");
+  $("#app").classList.add("active");
+  $(`.tab[data-tab="${tab}"]`).click();
+  window.scrollTo(0, 0);
+}
+$$(".snake-btn").forEach(b => b.addEventListener("click", () => openApp(b.dataset.go)));
+$("#backHome").onclick = () => {
+  $("#app").classList.remove("active");
+  $("#home").classList.add("active");
+  buildSnake();
+  window.scrollTo(0, homeScroll);
+  updateSnake();
+};
+
 /* ---------- Init ---------- */
+buildSnake();
 renderLists();
 renderPay();

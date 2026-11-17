@@ -3,7 +3,7 @@
    ===================================================== */
 const CONFIG = {
   // Order ashbe ei WhatsApp number a (country code shoho, + chhara). Example: 8801XXXXXXXXX
-  whatsapp: "8801XXXXXXXXX",
+  whatsapp: "01761645666",
   // Payment number gulo (Send Money)
   payments: {
     bkash:  { name: "bKash",  number: "01761645666" },

@@ -3,30 +3,30 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>GameZone BD - Free Fire Topup</title>
+<title>Sadik Store - Free Fire Topup</title>
 <meta name="theme-color" content="#0b0b17">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<header class="topbar">
-  <div class="brand">
-    <!-- Logo: apnar logo.png dile ei line ta <img src="logo.png" class="logo-img"> diye replace korun -->
-    <div class="logo-mark">S</div>
-    <div><h1>Sadik <span>TopUp💎</span></h1><small>Fast &bull; Trusted &bull; Cheap</small></div>
-  </div>
+<header class="hero">
+  <!-- Logo: apnar logo.png dile ei div er jaygay <img src="logo.png" class="logo-img"> boshan -->
+  <div class="logo-mark big-logo">SS</div>
+  <h1 class="blink">Sadik Store🔗</h1>
+  <p class="tag">Fast &bull; Trusted &bull; Cheap</p>
 </header>
 
-<nav class="tabs" id="tabs">
-  <button class="tab active" data-tab="topup">💎 Topup</button>
-  <button class="tab" data-tab="guild">🏆 Guild Glory</button>
-  <button class="tab" data-tab="like">❤️ Profile Like</button>
+<!-- Sticky nav: scroll korle neeche lege jabe, highlight line snake-er moto cholbe -->
+<nav class="snav" id="snav">
+  <div class="slider" id="slider"></div>
+  <button class="nb active" data-target="topup">💎 Topup</button>
+  <button class="nb" data-target="others">🎮 Others</button>
 </nav>
 
 <main>
 
   <!-- ================= TOPUP ================= -->
-  <section id="topup" class="page active">
+  <section id="topup" class="sec">
 
     <div class="notice">
       <div class="notice-line">🆔 <b>REQUIRED:</b> GAME ID CODE ONLY</div>
@@ -35,7 +35,6 @@
 
     <div id="lists"></div>
 
-    <!-- Order box (select korle auto ekhane nicha niye ashbe) -->
     <div class="order" id="orderBox" hidden>
       <h2>🛒 Your Order</h2>
 
@@ -62,7 +61,11 @@
 
       <div class="row col">
         <label for="gameId">Free Fire Game ID (UID)</label>
-        <input type="text" id="gameId" placeholder="Example: 123456789" inputmode="numeric" maxlength="14">
+        <div class="uid-row">
+          <input type="text" id="gameId" placeholder="Example: 123456789" inputmode="numeric" maxlength="14">
+          <button type="button" id="uidBtn" class="uid-btn">Check</button>
+        </div>
+        <div class="uid-res" id="uidRes"></div>
       </div>
 
       <h3>Payment Method</h3>
@@ -71,7 +74,7 @@
       <div class="pay-info" id="payInfo" hidden>
         <p>Nicher number a <b id="payAmt"></b> <b>Send Money</b> korun:</p>
         <div class="num-box">
-          <span id="payNum">01761645666</span>
+          <span id="payNum"></span>
           <button type="button" id="copyBtn">Copy</button>
         </div>
       </div>
@@ -90,17 +93,13 @@
     </div>
   </section>
 
-  <!-- ================= GUILD GLORY ================= -->
-  <section id="guild" class="page">
+  <!-- ================= OTHERS ================= -->
+  <section id="others" class="sec others">
     <div class="soon">
       <div class="big">🏆</div>
       <h2>Guild Glory</h2>
       <p>Coming Soon...</p>
     </div>
-  </section>
-
-  <!-- ================= PROFILE LIKE ================= -->
-  <section id="like" class="page">
     <div class="soon">
       <div class="big">❤️</div>
       <h2>Profile Like</h2>
@@ -110,7 +109,7 @@
 
 </main>
 
-<footer>powered by sadik &bull; All rights reserved</footer>
+<footer>© 2026 Sadik Store &bull; All rights reserved</footer>
 
 <script src="script.js"></script>
 </body>

@@ -7,26 +7,61 @@
 <meta name="theme-color" content="#0b0b17">
 <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="is-home">
 
-<header class="hero">
-  <!-- Logo: apnar logo.png dile ei div er jaygay <img src="logo.png" class="logo-img"> boshan -->
-  <div class="logo-mark big-logo">SS</div>
-  <h1 class="blink">Sadik Store🔗</h1>
-  <p class="tag">Fast &bull; Trusted &bull; Cheap</p>
+<header class="topbar">
+  <div class="brand" id="brandHome" role="button" tabindex="0">
+    <!-- Logo: apnar logo.png dile ei div ta <img src="logo.png" class="logo-img"> diye replace korun -->
+    <div class="logo-mark">SS</div>
+    <div><h1>Sadik <span>Store</span></h1><small>Fast &bull; Trusted &bull; Cheap</small></div>
+  </div>
 </header>
 
-<!-- Sticky nav: scroll korle neeche lege jabe, highlight line snake-er moto cholbe -->
-<nav class="snav" id="snav">
-  <div class="slider" id="slider"></div>
-  <button class="nb active" data-target="topup">💎 Topup</button>
-  <button class="nb" data-target="others">🎮 Others</button>
+<nav class="tabs" id="tabs">
+  <button class="tab" data-tab="home">🏠 Home</button>
+  <button class="tab" data-tab="topup">💎 Topup</button>
+  <button class="tab" data-tab="guild">🏆 Guild Glory</button>
+  <button class="tab" data-tab="like">❤️ Profile Like</button>
 </nav>
 
 <main>
 
+  <!-- ================= HOME ================= -->
+  <section id="home" class="page active">
+
+    <div class="hero">
+      <div class="blink-wrap"><h2 class="blink">Sadik Store🔗</h2></div>
+      <p class="hero-sub">Free Fire Topup &bull; Guild Glory &bull; Profile Like</p>
+      <div class="scroll-hint">Scroll korun <span>↓</span></div>
+    </div>
+
+    <div class="snake" id="snake">
+      <svg id="snakeSvg" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" aria-hidden="true">
+        <path id="snakeTrack" fill="none"/>
+        <path id="snakePath" fill="none"/>
+        <circle id="snakeHead" r="9"/>
+      </svg>
+
+      <button class="s-item left" data-go="topup" type="button">
+        <span class="si-ic">💎</span>
+        <span class="si-tx"><b>Topup</b><small>Diamond, Membership &amp; Level Up Pass</small></span>
+      </button>
+
+      <button class="s-item right" data-go="guild" type="button">
+        <span class="si-ic">🏆</span>
+        <span class="si-tx"><b>Guild Glory</b><small>Coming soon</small></span>
+      </button>
+
+      <button class="s-item left" data-go="like" type="button">
+        <span class="si-ic">❤️</span>
+        <span class="si-tx"><b>Profile Like</b><small>Coming soon</small></span>
+      </button>
+    </div>
+
+  </section>
+
   <!-- ================= TOPUP ================= -->
-  <section id="topup" class="sec">
+  <section id="topup" class="page">
 
     <div class="notice">
       <div class="notice-line">🆔 <b>REQUIRED:</b> GAME ID CODE ONLY</div>
@@ -35,6 +70,7 @@
 
     <div id="lists"></div>
 
+    <!-- Order box (select korle auto ekhane nicha niye ashbe) -->
     <div class="order" id="orderBox" hidden>
       <h2>🛒 Your Order</h2>
 
@@ -63,7 +99,7 @@
         <label for="gameId">Free Fire Game ID (UID)</label>
         <div class="uid-row">
           <input type="text" id="gameId" placeholder="Example: 123456789" inputmode="numeric" maxlength="14">
-          <button type="button" id="uidBtn" class="uid-btn">Check</button>
+          <button type="button" id="uidBtn">Check UID</button>
         </div>
         <div class="uid-res" id="uidRes"></div>
       </div>
@@ -93,13 +129,17 @@
     </div>
   </section>
 
-  <!-- ================= OTHERS ================= -->
-  <section id="others" class="sec others">
+  <!-- ================= GUILD GLORY ================= -->
+  <section id="guild" class="page">
     <div class="soon">
       <div class="big">🏆</div>
       <h2>Guild Glory</h2>
       <p>Coming Soon...</p>
     </div>
+  </section>
+
+  <!-- ================= PROFILE LIKE ================= -->
+  <section id="like" class="page">
     <div class="soon">
       <div class="big">❤️</div>
       <h2>Profile Like</h2>

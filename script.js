@@ -4,6 +4,9 @@
 const CONFIG = {
   // Order ashbe ei WhatsApp number a (country code shoho, + chhara). Example: 8801XXXXXXXXX
   whatsapp: "01761645666",
+  // UID checker API. {uid} er jaygay UID boshbe. Khali ("") rakhle checker off thakbe.
+  // Example: "https://your-api.com/ff?uid={uid}"  -> JSON a nickname/name thakte hobe
+  uidApi: "",
   // Payment number gulo (Send Money)
   payments: {
     bkash:  { name: "bKash",  number: "01761645666" },
@@ -64,12 +67,56 @@ const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 let selected = null;
 let payment = null;
 
-/* ---------- Tabs ---------- */
-$$(".tab").forEach(btn => btn.addEventListener("click", () => {
-  $$(".tab").forEach(b => b.classList.toggle("active", b === btn));
-  $$(".page").forEach(p => p.classList.toggle("active", p.id === btn.dataset.tab));
-  window.scrollTo({ top: 0, behavior: "smooth" });
-}));
+/* ---------- Sticky nav + snake slider ---------- */
+const nav = $("#snav"), navBtns = $$(".nb"), slider = $("#slider");
+let curNav = -1;
+
+function placeSlider(i, animate = true) {
+  const b = navBtns[i];
+  const nr = nav.getBoundingClientRect(), r = b.getBoundingClientRect();
+  const left = r.left - nr.left, right = nr.right - r.right;
+  const goingRight = i > curNav;
+  const fast = ".28s cubic-bezier(.3,.9,.3,1)", slow = ".5s .1s cubic-bezier(.3,.9,.3,1)";
+  slider.style.transition = !animate ? "none"
+    : goingRight ? `right ${fast}, left ${slow}` : `left ${fast}, right ${slow}`;
+  slider.style.left = left + "px";
+  slider.style.right = right + "px";
+  navBtns.forEach((x, k) => x.classList.toggle("active", k === i));
+  curNav = i;
+}
+function spy() {
+  const topOthers = $("#others").getBoundingClientRect().top;
+  const atBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4;
+  const i = (topOthers - nav.offsetHeight - 120 <= 0 || atBottom) ? 1 : 0;
+  if (i !== curNav) placeSlider(i);
+}
+navBtns.forEach(b => b.addEventListener("click", () =>
+  $("#" + b.dataset.target).scrollIntoView({ behavior: "smooth", block: "start" })));
+window.addEventListener("scroll", spy, { passive: true });
+window.addEventListener("resize", () => placeSlider(curNav, false));
+placeSlider(0, false);
+
+/* ---------- UID checker ---------- */
+let uidName = null;
+function setUidMsg(t, cls) { const el = $("#uidRes"); el.textContent = t; el.className = "uid-res " + (cls || ""); }
+$("#gameId").addEventListener("input", () => { uidName = null; setUidMsg(""); });
+$("#uidBtn").addEventListener("click", async () => {
+  const uid = $("#gameId").value.trim();
+  if (uid.length < 6) return setUidMsg("Age sothik UID din.", "bad");
+  if (!CONFIG.uidApi) return setUidMsg("UID checker ekhono chalu kora hoyni.", "info");
+  const btn = $("#uidBtn");
+  btn.disabled = true; setUidMsg("Checking...", "info");
+  try {
+    const res = await fetch(CONFIG.uidApi.replace("{uid}", encodeURIComponent(uid)));
+    const d = await res.json();
+    const name = d.nickname || d.name || d.player_name || (d.data && (d.data.nickname || d.data.name));
+    if (res.ok && name) { uidName = name; setUidMsg("✅ Player: " + name, "ok"); }
+    else setUidMsg("❌ UID paoya jayni. Abar check korun.", "bad");
+  } catch (e) {
+    setUidMsg("Checker kaj korche na. Pore abar chesta korun.", "bad");
+  }
+  btn.disabled = false;
+});
 
 /* ---------- Render lists ---------- */
 function renderLists() {
@@ -175,6 +222,7 @@ $("#submitBtn").onclick = () => {
   err.textContent = "";
   if (!selected)                        return err.textContent = "Age ekta package select korun.";
   if (uid.length < 6)                   return err.textContent = "Sothik Game ID din (shudhu number).";
+  if (CONFIG.uidApi && !uidName)        return err.textContent = "Age UID Check button chepe verify korun.";
   if (!payment)                         return err.textContent = "Payment method select korun.";
   if (!/^01\d{9}$/.test(sender))        return err.textContent = "Sothik 11 digit number din (01XXXXXXXXX).";
   if (trx.length < 6)                   return err.textContent = "Transaction ID din.";
@@ -186,7 +234,7 @@ $("#submitBtn").onclick = () => {
 📦 Package: ${selected.name}
 🔢 Quantity: ${qty}
 💰 Total: ${total()} Tk
-🆔 Game ID: ${uid}
+🆔 Game ID: ${uid}${uidName ? " (" + uidName + ")" : ""}
 💳 Method: ${CONFIG.payments[payment].name}
 📱 Sender: ${sender}
 🧾 TrxID: ${trx}`;

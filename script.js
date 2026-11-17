@@ -3,7 +3,7 @@
    ===================================================== */
 const CONFIG = {
   // UID checker er Cloudflare Worker URL (worker.js dekhun). API key ekhane BOSHBEN NA.
-  uidApi: "https://uidcheck.sadiksir36.workers.dev",
+  uidApi: "https://uidcheck.sadiksir36.workers.dev/",
   // Order ashbe ei WhatsApp number a (country code shoho, + chhara). Example: 8801XXXXXXXXX
   whatsapp: "01761645666",
   // Payment number gulo (Send Money)
@@ -235,11 +235,13 @@ $("#checkUid").onclick = async () => {
     const r = await fetch(`${CONFIG.uidApi}?uid=${encodeURIComponent(uid)}`);
     const data = await r.json();
     if (!r.ok) throw new Error(data.error || data.message || "Request failed");
-    const name = deepFind(data, ["nickname", "nickName", "player_name", "playerName", "account_name", "accountName", "name"]);
-    const level = deepFind(data, ["level", "account_level", "accountLevel"]);
+    const info = data.AccountInfo || data;
+    const name = info.AccountName || deepFind(data, ["AccountName", "nickname", "name"]);
+    const level = info.AccountLevel ?? deepFind(data, ["AccountLevel", "level"]);
+    const region = info.AccountRegion || "";
     if (!name) throw new Error("Ei UID er player paoa jay nai.");
     uidVerified = { uid, name: String(name) };
-    setUidResult("ok", `✅ ${esc(name)}${level ? " &bull; Level " + esc(level) : ""}`);
+    setUidResult("ok", `✅ ${esc(name)}${level ? " &bull; Level " + esc(level) : ""}${region ? " &bull; " + esc(region) : ""}`);
   } catch (e) {
     uidVerified = null;
     setUidResult("bad", "❌ " + esc(e.message || "UID check kora jay nai. Abar chesta korun."));

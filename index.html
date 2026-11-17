@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GameZone BD - Free Fire Topup</title>
+<meta name="theme-color" content="#0b0b17">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <!-- Logo: apnar logo.png dile ei line ta <img src="logo.png" class="logo-img"> diye replace korun -->
+    <div class="logo-mark">GZ</div>
+    <div><h1>GameZone <span>BD</span></h1><small>Fast &bull; Trusted &bull; Cheap</small></div>
+  </div>
+</header>
+
+<nav class="tabs" id="tabs">
+  <button class="tab active" data-tab="topup">💎 Topup</button>
+  <button class="tab" data-tab="guild">🏆 Guild Glory</button>
+  <button class="tab" data-tab="like">❤️ Profile Like</button>
+</nav>
+
+<main>
+
+  <!-- ================= TOPUP ================= -->
+  <section id="topup" class="page active">
+
+    <div class="notice">
+      <div class="notice-line">🆔 <b>REQUIRED:</b> GAME ID CODE ONLY</div>
+      <div class="notice-line">📌 <b>PRICE:</b> FIXED</div>
+    </div>
+
+    <div id="lists"></div>
+
+    <!-- Order box (select korle auto ekhane nicha niye ashbe) -->
+    <div class="order" id="orderBox" hidden>
+      <h2>🛒 Your Order</h2>
+
+      <div class="sel-item">
+        <div>
+          <div class="sel-name" id="selName">-</div>
+          <div class="sel-unit" id="selUnit">-</div>
+        </div>
+      </div>
+
+      <div class="row">
+        <label>Quantity</label>
+        <div class="qty">
+          <button type="button" id="qMinus">−</button>
+          <input type="number" id="qty" value="1" min="1" max="99" inputmode="numeric">
+          <button type="button" id="qPlus">+</button>
+        </div>
+      </div>
+
+      <div class="total">
+        <span>Total Price</span>
+        <b id="totalPrice">0 Tk</b>
+      </div>
+
+      <div class="row col">
+        <label for="gameId">Free Fire Game ID (UID)</label>
+        <input type="text" id="gameId" placeholder="Example: 123456789" inputmode="numeric" maxlength="14">
+      </div>
+
+      <h3>Payment Method</h3>
+      <div class="pay" id="payList"></div>
+
+      <div class="pay-info" id="payInfo" hidden>
+        <p>Nicher number a <b id="payAmt"></b> <b>Send Money</b> korun:</p>
+        <div class="num-box">
+          <span id="payNum"></span>
+          <button type="button" id="copyBtn">Copy</button>
+        </div>
+      </div>
+
+      <div class="row col">
+        <label for="sender">Je number theke pathiyechen</label>
+        <input type="tel" id="sender" placeholder="01XXXXXXXXX" inputmode="numeric" maxlength="11">
+      </div>
+      <div class="row col">
+        <label for="trx">Transaction ID (TrxID)</label>
+        <input type="text" id="trx" placeholder="Example: 9A7B6C5D4E">
+      </div>
+
+      <p class="err" id="err"></p>
+      <button class="submit" id="submitBtn" type="button">Order Confirm Korun</button>
+    </div>
+  </section>
+
+  <!-- ================= GUILD GLORY ================= -->
+  <section id="guild" class="page">
+    <div class="soon">
+      <div class="big">🏆</div>
+      <h2>Guild Glory</h2>
+      <p>Coming Soon...</p>
+    </div>
+  </section>
+
+  <!-- ================= PROFILE LIKE ================= -->
+  <section id="like" class="page">
+    <div class="soon">
+      <div class="big">❤️</div>
+      <h2>Profile Like</h2>
+      <p>Coming Soon...</p>
+    </div>
+  </section>
+
+</main>
+
+<footer>© 2026 GameZone BD &bull; All rights reserved</footer>
+
+<script src="script.js"></script>
+</body>
+</html>

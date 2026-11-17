@@ -3,7 +3,7 @@
    ===================================================== */
 const CONFIG = {
   // UID checker er Cloudflare Worker URL (worker.js dekhun). API key ekhane BOSHBEN NA.
-  uidApi: "https://uidcheck.sadiksir36.workers.dev/",
+  uidApi: "https://uidcheck.sadiksir36.workers.dev",
   // Order ashbe ei WhatsApp number a (country code shoho, + chhara). Example: 8801XXXXXXXXX
   whatsapp: "01761645666",
   // Payment number gulo (Send Money)

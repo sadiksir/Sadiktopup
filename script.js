@@ -346,7 +346,44 @@ function openApp(tab) {
   $(`.tab[data-tab="${tab}"]`).click();
   window.scrollTo(0, 0);
 }
-$$(".snake-btn").forEach(b => b.addEventListener("click", () => openApp(b.dataset.go)));
+let zooming = false;
+function zoomOpen(btn) {
+  if (zooming) return;
+  zooming = true;
+  const ic = btn.querySelector(".ic");
+  const r = ic.getBoundingClientRect();
+  const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+
+  const fx = document.createElement("div");
+  fx.className = "zoom-fx";
+  const g = document.createElement("div");
+  g.className = "zoom-ic";
+  g.textContent = ic.textContent;
+  g.style.left = cx + "px";
+  g.style.top = cy + "px";
+  g.style.fontSize = getComputedStyle(ic).fontSize;
+  fx.appendChild(g);
+  document.body.appendChild(fx);
+  ic.style.visibility = "hidden";
+
+  const dx = window.innerWidth / 2 - cx, dy = window.innerHeight / 2 - cy;
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    fx.classList.add("go");
+    g.style.transform = `translate(-50%,-50%) translate(${dx}px,${dy}px) scale(9)`;
+  }));
+
+  // icon boro hoye gele page open + icon aro boro hoye fade out
+  setTimeout(() => {
+    openApp(btn.dataset.go);
+    ic.style.visibility = "";
+    g.style.transform = `translate(-50%,-50%) translate(${dx}px,${dy}px) scale(20)`;
+    g.style.opacity = "0";
+    fx.style.opacity = "0";
+    fx.style.pointerEvents = "none";
+    setTimeout(() => { fx.remove(); zooming = false; }, 550);
+  }, 700);
+}
+$$(".snake-btn").forEach(b => b.addEventListener("click", () => zoomOpen(b)));
 $("#backHome").onclick = () => {
   $("#app").classList.remove("active");
   $("#home").classList.add("active");

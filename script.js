@@ -303,7 +303,7 @@ ${nameLine}
    ===================================================== */
 const wrap = $("#snakeWrap"), svg = $("#snakeSvg"), sLine = $("#snakeLine"),
       sGlow = $("#snakeGlow"), sBase = $("#snakeBase"), sHead = $("#snakeHead");
-const ft = $("#fixedTitle"), hbar = $("#homeBar"), hSub = $(".hero-sub"), hHint = $(".scroll-hint");
+const ft = $("#fixedTitle"), hbar = $("#homeBar"), hSub = $(".hero-sub"), hHint = $(".scroll-hint"), hLogo = $("#heroLogo");
 
 // measurements (resize/load e ekbar)
 const M = { vw: 0, vh: 0, tw: 0, th: 0, fs: 48, wrapTop: 0 };
@@ -416,6 +416,7 @@ function render() {
   if (mini !== lastMini) { lastMini = mini; ft.classList.toggle("mini", mini); }
   hbar.style.opacity = e;
   hSub.style.opacity = Math.max(0, 1 - raw * 1.8);
+  hLogo.style.opacity = Math.max(0, 1 - raw * 2.2);
   hHint.style.opacity = Math.max(0, 1 - raw * 4);
 }
 
@@ -498,8 +499,26 @@ $("#backHome").onclick = () => {
   render();
 };
 
+/* ---------- Site logo (auto): logo.png upload korlei boshe jabe ---------- */
+(function () {
+  const cands = ["logo.png", "logo.webp", "logo.jpg", "logo.jpeg", "logo.svg", "img/logo.png"];
+  let i = 0;
+  const im = new Image();
+  im.onload = () => {
+    const src = cands[i];
+    hLogo.src = src; hLogo.hidden = false;                      // home page er upore
+    const a = $("#appLogo");                                    // app header e SS er jaygay
+    a.innerHTML = ""; a.classList.add("has-img");
+    const x = new Image(); x.src = src; x.alt = "Sadik Store"; a.appendChild(x);
+    let fav = document.querySelector('link[rel="icon"]');       // browser tab icon
+    if (!fav) { fav = document.createElement("link"); fav.rel = "icon"; document.head.appendChild(fav); }
+    fav.href = src;
+  };
+  im.onerror = () => { i++; if (i < cands.length) im.src = cands[i]; };
+  im.src = cands[0];
+})();
+
 /* ---------- Init ---------- */
 renderLists();
 renderPay();
 buildSnake();
-     

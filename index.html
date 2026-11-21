@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Sadik Store - Free Fire Topup</title>
 <meta name="theme-color" content="#0b0b17">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -12,10 +15,12 @@
 <!-- ================= HOME (landing) ================= -->
 <div id="home" class="view active">
 
+  <div class="home-bar" id="homeBar"></div>
+  <!-- Boro theke scroll korle chhoto hoye uporer bam kone lock hoy -->
+  <div class="fixed-title" id="fixedTitle">Sadik Store🔗</div>
+
   <section class="hero">
     <div class="orb o1"></div><div class="orb o2"></div>
-    <!-- Logo: apnar logo.png dile <img src="logo.png" class="hero-logo"> boshan -->
-    <h1 class="blink-title">Sadik Store🔗</h1>
     <p class="hero-sub">Free Fire Topup &bull; Guild Glory &bull; Profile Like</p>
     <div class="scroll-hint"><span>Scroll Down</span><i>↓</i></div>
   </section>
@@ -107,12 +112,27 @@
         <h3>Payment Method</h3>
         <div class="pay" id="payList"></div>
 
-        <div class="pay-info" id="payInfo" hidden>
-          <p>Nicher number a <b id="payAmt"></b> <b>Send Money</b> korun:</p>
-          <div class="num-box">
-            <span id="payNum"></span>
+        <!-- Payment select korle ei panel khule -->
+        <div class="pay-panel" id="payPanel" hidden>
+          <div class="pp-head">
+            <span class="pp-logo"><img id="ppLogo" alt=""></span>
+            <div><b id="ppName">-</b><small>Send Money korun</small></div>
+          </div>
+
+          <div class="pp-line">
+            <span>Amount</span>
+            <b id="payAmt">0 Tk</b>
+            <button type="button" id="copyAmt">Copy</button>
+          </div>
+          <div class="pp-line">
+            <span>Number</span>
+            <b id="payNum">-</b>
             <button type="button" id="copyBtn">Copy</button>
           </div>
+
+          <img id="ppQr" class="pp-qr" alt="QR" hidden>
+
+          <ol class="pp-steps" id="ppSteps"></ol>
         </div>
 
         <div class="row col">
@@ -144,6 +164,7 @@
   <footer>© 2026 Sadik Store &bull; All rights reserved</footer>
 </div>
 
+<script src="config.js"></script>
 <script src="script.js"></script>
 </body>
 </html>

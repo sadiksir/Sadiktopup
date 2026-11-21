@@ -134,11 +134,19 @@ function renderPay() {
 
     const box = document.createElement("span");
     box.className = "lg";
+
+    // Logo khuje: config e deya path -> bkash.png (same folder) -> img/bkash.png
+    const cands = [p.logo, key + ".png", "img/" + key + ".png"].filter((v, i, a) => v && a.indexOf(v) === i);
+    let ci = 0;
     const img = new Image();
     img.alt = p.name;
-    // PNG na thakle letter badge dekhabe
-    img.onerror = () => { box.classList.add("fallback"); box.textContent = p.name[0]; };
-    img.src = p.logo;
+    img.onload = () => { p._logo = cands[ci]; };
+    img.onerror = () => {
+      ci++;
+      if (ci < cands.length) { img.src = cands[ci]; }
+      else { box.classList.add("fallback"); box.textContent = p.name[0]; }
+    };
+    img.src = cands[0];
     box.appendChild(img);
 
     b.appendChild(box);
@@ -162,9 +170,8 @@ function renderPayPanel(scroll) {
   panel.style.setProperty("--pc", p.color || "#ff7a00");
   $("#ppName").textContent = p.name;
   const logo = $("#ppLogo");
-  logo.style.display = "";
-  logo.onerror = () => { logo.style.display = "none"; };
-  if (logo.getAttribute("src") !== p.logo) logo.src = p.logo;
+  if (p._logo) { logo.src = p._logo; logo.parentElement.style.display = ""; }
+  else { logo.parentElement.style.display = "none"; }
   $("#payAmt").textContent = amt;
   $("#payNum").textContent = p.number;
 
@@ -242,11 +249,9 @@ $("#checkUid").onclick = async () => {
         setUidResult("bad", "❌ Ei UID er player paoa jay nai.");
       }
     } else if ([400, 402, 404].includes(r.status)) {
-      // API bolche UID-i thik na
       uidState = { uid, status: "bad" };
       setUidResult("bad", "❌ UID sothik na ba player paoa jay nai.");
     } else {
-      // Server/limit problem — UID thik kina bola jacche na
       uidState = { uid, status: "unknown" };
       setUidResult("warn", "⚠️ UID check server ekhon kaj korche na. UID ta nijer chokhe ekbar dekhe nin, tarpor order korte paren.");
     }
@@ -292,11 +297,30 @@ ${nameLine}
 };
 
 /* =====================================================
-   HOME: snake + sticky title
+   HOME: snake + sticky title  (smooth version)
+   - scroll e kono layout-read nai (shob age theke measure kora)
+   - heavy blur/filter/text-shadow animation nai
    ===================================================== */
 const wrap = $("#snakeWrap"), svg = $("#snakeSvg"), sLine = $("#snakeLine"),
-      sBase = $("#snakeBase"), sHead = $("#snakeHead");
-let table = [], sTotal = 0, sBtns = [], homeScroll = 0;
+      sGlow = $("#snakeGlow"), sBase = $("#snakeBase"), sHead = $("#snakeHead");
+const ft = $("#fixedTitle"), hbar = $("#homeBar"), hSub = $(".hero-sub"), hHint = $(".scroll-hint");
+
+// measurements (resize/load e ekbar)
+const M = { vw: 0, vh: 0, tw: 0, th: 0, fs: 48, wrapTop: 0 };
+// snake lookup table
+let T = null, sTotal = 0, sBtns = [], homeScroll = 0;
+let lastMini = null;
+
+function homeActive() { return $("#home").classList.contains("active"); }
+
+function measure() {
+  M.vw = window.innerWidth;
+  M.vh = window.innerHeight;
+  M.tw = ft.offsetWidth;
+  M.th = ft.offsetHeight;
+  M.fs = parseFloat(getComputedStyle(ft).fontSize) || 48;
+  M.wrapTop = wrap.getBoundingClientRect().top + window.scrollY;
+}
 
 function catmull(pts) {
   let d = `M ${pts[0][0]} ${pts[0][1]}`;
@@ -310,17 +334,17 @@ function catmull(pts) {
 }
 
 function buildSnake() {
-  if (!$("#home").classList.contains("active")) return;
+  if (!homeActive()) return;
+  measure();
   const W = wrap.clientWidth, H = wrap.clientHeight, wr = wrap.getBoundingClientRect();
   svg.setAttribute("width", W); svg.setAttribute("height", H);
   svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
 
   sBtns = $$(".snake-btn", wrap).map(el => {
     const r = el.getBoundingClientRect(), left = el.classList.contains("left");
-    return { el, y: r.top - wr.top + r.height / 2, x: left ? (r.right - wr.left - 10) : (r.left - wr.left + 10) };
+    return { el, on: false, y: r.top - wr.top + r.height / 2, x: left ? (r.right - wr.left - 10) : (r.left - wr.left + 10) };
   });
 
-  // aka-baka snake — shesh button e giye-i thame (faka jaygay jay na)
   const amp = Math.min(W * 0.13, 80);
   const pts = [[W / 2, 0]];
   let px = W / 2, py = 0, sign = 1;
@@ -333,82 +357,91 @@ function buildSnake() {
     px = b.x; py = b.y;
   });
   const d = catmull(pts);
-  sBase.setAttribute("d", d);
-  sLine.setAttribute("d", d);
+  [sBase, sLine, sGlow].forEach(p => p.setAttribute("d", d));
 
   sTotal = sLine.getTotalLength();
-  sLine.style.strokeDasharray = sTotal;
-  sLine.style.strokeDashoffset = sTotal;
+  [sLine, sGlow].forEach(p => { p.style.strokeDasharray = sTotal; p.style.strokeDashoffset = sTotal; });
 
-  table = [];
+  // lookup table (ekbar-i banai, scroll e getPointAtLength lage na)
+  const N = 500;
+  T = { len: new Float32Array(N + 1), my: new Float32Array(N + 1), x: new Float32Array(N + 1), y: new Float32Array(N + 1) };
   let maxY = -1;
-  const N = 600;
   for (let i = 0; i <= N; i++) {
     const len = sTotal * i / N, p = sLine.getPointAtLength(len);
     maxY = Math.max(maxY, p.y);
-    table.push({ len, y: maxY });
+    T.len[i] = len; T.my[i] = maxY; T.x[i] = p.x; T.y[i] = p.y;
   }
-  sBtns.forEach(b => b.len = lenAtY(b.y));
-  updateSnake();
+  sBtns.forEach(b => b.idx = idxAtY(b.y));
+  render();
 }
 
-function lenAtY(y) {
-  let lo = 0, hi = table.length - 1;
-  if (table[hi].y < y) return sTotal;
+function idxAtY(y) {
+  let lo = 0, hi = T.my.length - 1;
+  if (T.my[hi] < y) return hi;
   while (lo < hi) {
     const m = (lo + hi) >> 1;
-    if (table[m].y >= y) hi = m; else lo = m + 1;
+    if (T.my[m] >= y) hi = m; else lo = m + 1;
   }
-  return table[lo].len;
+  return lo;
 }
 
-function updateSnake() {
-  if (!sTotal || !$("#home").classList.contains("active")) return;
-  const top = wrap.getBoundingClientRect().top;
-  const headY = window.innerHeight * 0.72 - top;
-  const drawn = headY > 0 ? lenAtY(headY) : 0;
-  sLine.style.strokeDashoffset = sTotal - drawn;
-  const p = sLine.getPointAtLength(drawn);
-  sHead.setAttribute("cx", p.x); sHead.setAttribute("cy", p.y);
-  sHead.style.opacity = headY > 0 && drawn < sTotal - 2 ? 1 : 0;
-  sBtns.forEach(b => b.el.classList.toggle("active", headY > 0 && drawn >= b.len - 1));
-}
+function render() {
+  if (!homeActive() || !T) return;
+  const sy = window.scrollY, vh = M.vh;
 
-/* ---------- Sticky title: boro -> chhoto, bam kone lock ---------- */
-const ft = $("#fixedTitle"), hbar = $("#homeBar"),
-      hSub = $(".hero-sub"), hHint = $(".scroll-hint");
+  /* ---- snake ---- */
+  const headY = sy + vh * 0.72 - M.wrapTop;
+  const idx = headY > 0 ? idxAtY(headY) : 0;
+  const off = sTotal - T.len[idx];
+  sLine.style.strokeDashoffset = off;
+  sGlow.style.strokeDashoffset = off;
+  const showHead = headY > 0 && idx < T.len.length - 1;
+  sHead.setAttribute("cx", T.x[idx]);
+  sHead.setAttribute("cy", T.y[idx]);
+  sHead.style.opacity = showHead ? 1 : 0;
+  for (const b of sBtns) {
+    const on = headY > 0 && idx >= b.idx;
+    if (on !== b.on) { b.on = on; b.el.classList.toggle("active", on); }
+  }
 
-function updateTitle() {
-  if (!$("#home").classList.contains("active")) return;
-  const vw = window.innerWidth, vh = window.innerHeight;
-  const w = ft.offsetWidth, h = ft.offsetHeight;
-  const raw = Math.min(1, Math.max(0, window.scrollY / (vh * 0.5)));
+  /* ---- title: boro -> chhoto, uporer bam kone lock ---- */
+  const raw = Math.min(1, Math.max(0, sy / (vh * 0.45)));
   const e = raw * raw * (3 - 2 * raw);
-
-  const fs = parseFloat(getComputedStyle(ft).fontSize) || 48;
-  const s1 = Math.min(1, 22 / fs);            // chhoto size ~22px
+  const s1 = Math.min(1, 22 / M.fs);
   const s = 1 + (s1 - 1) * e;
-  const x0 = (vw - w) / 2, y0 = vh * 0.36 - h / 2;
-  const x1 = 16,           y1 = (48 - h * s1) / 2;
-  const x = x0 + (x1 - x0) * e, y = y0 + (y1 - y0) * e;
-
-  ft.style.transform = `translate(${x}px, ${y}px) scale(${s})`;
-  ft.classList.toggle("mini", raw >= 0.98);
+  const x0 = (M.vw - M.tw) / 2, y0 = vh * 0.36 - M.th / 2;
+  const x1 = 16, y1 = (48 - M.th * s1) / 2;
+  ft.style.transform = `translate3d(${x0 + (x1 - x0) * e}px, ${y0 + (y1 - y0) * e}px, 0) scale(${s})`;
+  const mini = raw >= 0.98;
+  if (mini !== lastMini) { lastMini = mini; ft.classList.toggle("mini", mini); }
   hbar.style.opacity = e;
   hSub.style.opacity = Math.max(0, 1 - raw * 1.8);
   hHint.style.opacity = Math.max(0, 1 - raw * 4);
 }
+
 ft.addEventListener("click", () => { if (ft.classList.contains("mini")) window.scrollTo({ top: 0, behavior: "smooth" }); });
 
-let ticking = false;
-window.addEventListener("scroll", () => {
-  if (ticking) return;
-  ticking = true;
-  requestAnimationFrame(() => { updateSnake(); updateTitle(); ticking = false; });
-}, { passive: true });
-window.addEventListener("resize", () => { buildSnake(); updateTitle(); });
-window.addEventListener("load", () => { buildSnake(); updateTitle(); });
-if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { buildSnake(); updateTitle(); });
+let ticking = false, settle = null;
+function onScroll() {
+  if (!ticking) {
+    ticking = true;
+    requestAnimationFrame(() => { render(); ticking = false; });
+  }
+  // scroll thamle abar ekbar — jate kokhono atke na thake
+  clearTimeout(settle);
+  settle = setTimeout(render, 120);
+}
+window.addEventListener("scroll", onScroll, { passive: true });
+window.addEventListener("scrollend", render);
+window.addEventListener("touchend", () => setTimeout(render, 150), { passive: true });
+
+let lastW = window.innerWidth;
+window.addEventListener("resize", () => {
+  if (window.innerWidth !== lastW) { lastW = window.innerWidth; buildSnake(); }   // shudhu width bodlale rebuild
+  else { M.vh = window.innerHeight; render(); }                                   // browser bar uthle-namle halka update
+});
+window.addEventListener("load", buildSnake);
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(buildSnake);
 
 /* ---------- Open app (icon zoom animation) ---------- */
 function openApp(tab) {
@@ -462,13 +495,11 @@ $("#backHome").onclick = () => {
   $("#home").classList.add("active");
   buildSnake();
   window.scrollTo(0, homeScroll);
-  updateSnake();
-  updateTitle();
+  render();
 };
 
 /* ---------- Init ---------- */
 renderLists();
 renderPay();
 buildSnake();
-updateTitle();
-   
+     

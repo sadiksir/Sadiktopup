@@ -237,5 +237,35 @@ input:focus{border-color:var(--pri)}
   .pay-panel{max-width:620px}
 }
 
+/* =====================================================
+   V4 — smooth + seamless background (white box fix)
+   ===================================================== */
+
+/* Puro website ek-i background: kono box/safed jaga nai */
+html{background:#0b0b17;min-height:100%}
+body{background:none}
+body::before{
+  content:"";position:fixed;top:0;left:0;right:0;bottom:0;z-index:-1;pointer-events:none;
+  background:
+    radial-gradient(520px 460px at 0% 8%, rgba(255,122,0,.30), transparent 70%),
+    radial-gradient(640px 560px at 100% 78%, rgba(106,44,255,.32), transparent 70%),
+    #0b0b17;
+}
+.orb{display:none}
+.hero{overflow:visible}
+
+/* Halka (lag-hin) — blur/filter soriye dilam */
+.topbar,.home-bar{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(11,11,23,.96)}
+.fixed-title{
+  animation:blink2 1.6s ease-in-out infinite;
+  text-shadow:0 0 10px #ff7a00,0 0 26px rgba(255,122,0,.8),0 0 50px rgba(255,45,85,.6);
+  will-change:transform,opacity;backface-visibility:hidden;
+}
+.fixed-title.mini{animation:none;opacity:1;text-shadow:0 0 8px #ff7a00}
+@keyframes blink2{0%,100%{opacity:1}50%{opacity:.45}}
+
+#snakeLine{filter:none}
+#snakeGlow{stroke:#ff7a00;stroke-width:18;stroke-linecap:round;opacity:.22}
+#snakeHead{fill:#fff;stroke:rgba(255,150,40,.55);stroke-width:12;filter:none}
+
 footer{text-align:center;color:var(--mut);font-size:12px;padding:20px}
-  

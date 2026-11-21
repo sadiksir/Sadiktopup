@@ -176,4 +176,66 @@ input:focus{border-color:var(--pri)}
   .tab{font-size:17px;padding:14px 18px}
 }
 
+/* =====================================================
+   V3 — sticky title, payment panel, logos, desktop layout
+   ===================================================== */
+
+/* ---- Sticky / blinking title ---- */
+.home-bar{position:fixed;left:0;right:0;top:0;height:48px;z-index:39;background:rgba(11,11,23,.88);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);opacity:0;pointer-events:none}
+.fixed-title{
+  position:fixed;left:0;top:0;z-index:40;transform-origin:0 0;white-space:nowrap;
+  font-family:"Orbitron","Segoe UI",system-ui,sans-serif;font-weight:900;
+  font-size:clamp(30px,9.5vw,84px);letter-spacing:2px;color:#fff;line-height:1.15;
+  will-change:transform;pointer-events:none;
+  animation:blink 1.4s ease-in-out infinite;
+}
+.fixed-title.mini{animation:none;pointer-events:auto;cursor:pointer;text-shadow:0 0 10px #ff7a00,0 0 22px rgba(255,45,85,.7)}
+.hero-sub{position:absolute;left:0;right:0;top:calc(36vh + clamp(34px,7vw,70px));margin:0;padding:0 16px}
+
+/* ---- Snake: shesh e faka tail nai ---- */
+.snake-wrap{padding-bottom:140px}
+
+/* ---- Payment buttons + logos ---- */
+.pm{--pc:#ff7a00;padding:12px 6px}
+.pm[data-p] .lg{width:64px;height:64px;padding:6px;border-radius:14px;background:#fff;overflow:hidden;display:grid;place-items:center}
+.pm .lg img{width:100%;height:100%;object-fit:contain;display:block}
+.pm[data-p] .lg.fallback{background:var(--pc);color:#fff;font-size:26px;font-weight:900}
+.pm.active{border-color:var(--pc);box-shadow:0 0 16px var(--pc)}
+
+/* ---- Payment panel ---- */
+.pay-panel{--pc:#ff7a00;margin-bottom:14px;border-radius:16px;overflow:hidden;border:2px solid var(--pc);background:var(--card2);animation:fade .3s}
+.pay-panel[hidden]{display:none}
+.pp-head{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--pc)}
+.pp-logo{width:48px;height:48px;border-radius:12px;background:#fff;display:grid;place-items:center;padding:5px;overflow:hidden}
+.pp-logo img{width:100%;height:100%;object-fit:contain}
+.pp-head b{display:block;font-size:18px;color:#fff}
+.pp-head small{color:rgba(255,255,255,.85);font-size:12px;font-weight:600}
+.pp-line{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line)}
+.pp-line span{color:var(--mut);font-size:13px;font-weight:700;width:64px}
+.pp-line b{flex:1;font-size:20px;letter-spacing:.5px}
+.pp-line button{padding:8px 14px;border:0;border-radius:8px;background:var(--pc);color:#fff;font-weight:800;cursor:pointer}
+.pp-qr{display:block;width:180px;max-width:70%;margin:14px auto 4px;border-radius:12px;background:#fff;padding:6px}
+.pp-steps{margin:0;padding:14px 16px 14px 36px;color:var(--text);font-size:14px;line-height:1.7}
+.pp-steps li::marker{color:var(--pc);font-weight:800}
+.pp-steps b{color:var(--pri2)}
+
+/* ---- UID warning ---- */
+.uid-result.warn{padding:10px 12px;margin-top:2px;background:rgba(255,179,71,.12);border:1px solid var(--pri2);color:#ffe3b8}
+
+/* ---- Laptop / boro screen: ui boro hoye chhorie jabe ---- */
+@media (min-width:900px){
+  .snake-wrap{max-width:1100px;gap:240px;padding-top:120px;padding-bottom:200px}
+  .snake-btn{width:34%;padding:30px 28px;border-radius:30px;gap:20px}
+  .snake-btn.left{margin-left:6%}
+  .snake-btn.right{margin-right:6%}
+  .snake-btn .ic{font-size:62px}
+  .snake-btn .tx{font-size:30px}
+  .snake-btn small{font-size:17px}
+  #snakeBase,#snakeLine{stroke-width:12}
+  .fixed-title{font-size:clamp(60px,7vw,110px)}
+  .hero-sub{font-size:24px}
+  .pay-panel{max-width:620px}
+}
+
 footer{text-align:center;color:var(--mut);font-size:12px;padding:20px}
+  

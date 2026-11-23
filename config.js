@@ -12,13 +12,13 @@ const CONFIG = {
   requireUidCheck: false,
 
   // Order ashbe ei WhatsApp number a (country code shoho, + chhara). Example: 8801XXXXXXXXX
-  whatsapp: "8801XXXXXXXXX",
+  whatsapp: "01636376697",
 
   // Payment: number, logo (img folder e PNG rakhun), color, USSD code
   // qr: "img/bkash-qr.png"  -- QR image dile payment panel e dekhabe (optional)
   payments: {
-    bkash:  { name: "bKash",  number: "01XXXXXXXXX", logo: "img/bkash.png",  color: "#e2136e", ussd: "*247#" },
-    nagad:  { name: "Nagad",  number: "01XXXXXXXXX", logo: "img/nagad.png",  color: "#f6921e", ussd: "*167#" },
-    rocket: { name: "Rocket", number: "01XXXXXXXXXX", logo: "img/rocket.png", color: "#8c3494", ussd: "*322#" }
+    bkash:  { name: "bKash",  number: "01761645666", logo: "img/bkash.png",  color: "#e2136e", ussd: "*247#" },
+    nagad:  { name: "Nagad",  number: "01761645666", logo: "img/nagad.png",  color: "#f6921e", ussd: "*167#" },
+    rocket: { name: "Rocket", number: "01761645666", logo: "img/rocket.png", color: "#8c3494", ussd: "*322#" }
   }
 };

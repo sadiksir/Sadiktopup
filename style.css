@@ -290,4 +290,4 @@ body::before{
 .scroll-hint{position:fixed;bottom:26px;left:50%;transform:translateX(-50%);z-index:30;pointer-events:none}
 
 footer{text-align:center;color:var(--mut);font-size:12px;padding:20px}
-           
+          

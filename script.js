@@ -248,7 +248,7 @@ $("#checkUid").onclick = async () => {
         uidState = { uid, status: "bad" };
         setUidResult("bad", "❌ Ei UID er player paoa jay nai.");
       }
-    } else if ([400, 402, 404].includes(r.status) && data && data.error) {
+    } else if ([400, 402, 404].includes(r.status)) {
       uidState = { uid, status: "bad" };
       setUidResult("bad", "❌ UID sothik na ba player paoa jay nai.");
     } else {
@@ -524,4 +524,4 @@ $("#backHome").onclick = () => {
     fav.href = src;
     measure(); render();
   };
-  im.onerror = () => { i++;
+  im.onerror = () => { i++; if (i < cands.length)

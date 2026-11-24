@@ -303,7 +303,7 @@ ${nameLine}
    ===================================================== */
 const wrap = $("#snakeWrap"), svg = $("#snakeSvg"), sLine = $("#snakeLine"),
       sGlow = $("#snakeGlow"), sBase = $("#snakeBase"), sHead = $("#snakeHead");
-const ft = $("#fixedTitle"), hbar = $("#homeBar"), hSub = $(".hero-sub"), hHint = $(".scroll-hint"), hLogo = $("#heroLogo");
+const ft = $("#fixedTitle"), hbar = $("#homeBar"), hSub = $(".hero-sub"), hHint = $(".scroll-hint");
 
 // measurements (resize/load e ekbar)
 const M = { vw: 0, vh: 0, tw: 0, th: 0, fs: 48, wrapTop: 0 };
@@ -318,7 +318,6 @@ function measure() {
   M.vh = window.innerHeight;
   M.tw = ft.offsetWidth;
   M.th = ft.offsetHeight;
-  M.lw = hLogo.hidden ? 0 : hLogo.offsetWidth;
   M.fs = parseFloat(getComputedStyle(ft).fontSize) || 48;
   M.wrapTop = wrap.getBoundingClientRect().top + window.scrollY;
 }
@@ -411,21 +410,12 @@ function render() {
   const s1 = Math.min(1, 22 / M.fs);
   const s = 1 + (s1 - 1) * e;
   const x0 = (M.vw - M.tw) / 2, y0 = vh * 0.36 - M.th / 2;
-  const hasLogo = !hLogo.hidden && M.lw > 0;
-  const x1 = hasLogo ? 56 : 16, y1 = (48 - M.th * s1) / 2;
+  const x1 = 16, y1 = (48 - M.th * s1) / 2;
   ft.style.transform = `translate3d(${x0 + (x1 - x0) * e}px, ${y0 + (y1 - y0) * e}px, 0) scale(${s})`;
-  if (hasLogo) {
-    // logo-o nam-er shathe uporer bam kone giye boshe
-    const L = M.lw, sl = Math.min(1, 32 / L), ls = 1 + (sl - 1) * e;
-    const lx0 = (M.vw - L) / 2, ly0 = y0 - L - 16;
-    const lx1 = 14, ly1 = (48 - L * sl) / 2;
-    hLogo.style.transform = `translate3d(${lx0 + (lx1 - lx0) * e}px, ${ly0 + (ly1 - ly0) * e}px, 0) scale(${ls})`;
-  }
   const mini = raw >= 0.98;
   if (mini !== lastMini) { lastMini = mini; ft.classList.toggle("mini", mini); }
   hbar.style.opacity = e;
   hSub.style.opacity = Math.max(0, 1 - raw * 1.8);
-  hSub.style.transform = `translateY(${-e * 24}px)`;
   hHint.style.opacity = Math.max(0, 1 - raw * 4);
 }
 
@@ -508,20 +498,8 @@ $("#backHome").onclick = () => {
   render();
 };
 
-/* ---------- Site logo (auto): logo.png upload korlei boshe jabe ---------- */
-(function () {
-  const cands = ["logo.png", "logo.webp", "logo.jpg", "logo.jpeg", "logo.svg", "img/logo.png"];
-  let i = 0;
-  const im = new Image();
-  im.onload = () => {
-    const src = cands[i];
-    hLogo.src = src; hLogo.hidden = false;                      // home page er upore
-    const a = $("#appLogo");                                    // app header e SS er jaygay
-    a.innerHTML = ""; a.classList.add("has-img");
-    const x = new Image(); x.src = src; x.alt = "Sadik Store"; a.appendChild(x);
-    let fav = document.querySelector('link[rel="icon"]');       // browser tab icon
-    if (!fav) { fav = document.createElement("link"); fav.rel = "icon"; document.head.appendChild(fav); }
-    fav.href = src;
-    measure(); render();
-  };
-  im.onerror = () => { i++; if (i < cands.length)
+/* ---------- Init ---------- */
+renderLists();
+renderPay();
+buildSnake();
+     

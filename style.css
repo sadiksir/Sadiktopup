@@ -289,25 +289,5 @@ body::before{
 .hero-sub span{padding:8px 15px;border-radius:999px;border:1px solid rgba(255,122,0,.45);background:rgba(21,21,42,.8);color:#fff;font-weight:700;font-size:14px;letter-spacing:.3px}
 .scroll-hint{position:fixed;bottom:26px;left:50%;transform:translateX(-50%);z-index:30;pointer-events:none}
 
-
-/* =====================================================
-   V6 — step form, UID add, WhatsApp note, chips fade fix
-   ===================================================== */
-.step{display:flex;align-items:center;gap:9px;margin:18px 0 9px;font-size:14px;font-weight:800;color:var(--acc);letter-spacing:.2px}
-.step .n{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,var(--pri),#ff2d55);color:#fff;font-size:12px;font-weight:900;flex:none}
-.uid-row button.uid-add{min-width:84px;padding:0 16px;border:0;border-radius:10px;background:var(--acc);color:#001;font-weight:800;cursor:pointer}
-.uid-row button.uid-add.added{background:var(--card2);color:#fff;border:1px solid var(--ok)}
-input[readonly]{border-color:var(--ok);color:#b9ffd6}
-.wa-note{margin-top:14px;padding:13px 14px;border-radius:12px;border:1px solid var(--ok);background:rgba(34,211,107,.12);font-size:14px;line-height:1.7;color:#dfffee}
-.wa-note[hidden]{display:none}
-.wa-note a{color:var(--acc);font-weight:800;text-decoration:underline}
-.order .row.qty-row[hidden]{display:none}
-.pp-qr[hidden]{display:none}
-
-/* Chip + Scroll Down: scroll-er shathe browser nijei fade kore (JS lag hole-o mathay bhese thake na) */
-@supports (animation-timeline: scroll()){
-  .hero-sub,.scroll-hint{animation:heroFade linear both;animation-timeline:scroll(root);animation-range:0px 35vh}
-}
-@keyframes heroFade{to{opacity:0;visibility:hidden}}
-
-footer{text-align:
+footer{text-align:center;color:var(--mut);font-size:12px;padding:20px}
+             

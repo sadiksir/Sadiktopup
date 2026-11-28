@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#0b0b17">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Audiowide&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -17,11 +17,11 @@
 
   <div class="home-bar" id="homeBar"></div>
   <!-- Boro theke scroll korle chhoto hoye uporer bam kone lock hoy -->
-  <div class="fixed-title" id="fixedTitle">Sadik Store🔗</div>
+  <div class="fixed-title" id="fixedTitle"><span>Sadik</span> <span class="st">Store</span><span class="lk">🔗</span></div>
 
   <section class="hero">
     <img class="hero-logo" id="heroLogo" alt="Sadik Store" hidden>
-    <p class="hero-sub">Free Fire Topup &bull; Guild Glory &bull; Profile Like</p>
+    <div class="hero-sub"><span>💎 Topup</span><span>🏆 Guild Glory</span><span>❤️ Profile Like</span></div>
     <div class="scroll-hint"><span>Scroll Down</span><i>↓</i></div>
   </section>
 
@@ -42,7 +42,7 @@
 
     <button class="snake-btn left"  data-go="topup"><span class="ic">💎</span><span class="tx">Topup<small>Diamond &amp; Pass</small></span></button>
     <button class="snake-btn right" data-go="guild"><span class="ic">🏆</span><span class="tx">Guild Glory<small>Coming Soon</small></span></button>
-    <button class="snake-btn left"  data-go="like"><span class="ic">❤️</span><span class="tx">Profile Like<small>Coming Soon</small></span></button>
+    <button class="snake-btn left"  data-go="like"><span class="ic">❤️</span><span class="tx">Profile Like<small>100 &amp; 200 Like</small></span></button>
   </section>
 
   <footer>© 2026 Sadik Store &bull; All rights reserved</footer>
@@ -77,77 +77,7 @@
 
       <div id="lists"></div>
 
-      <div class="order" id="orderBox" hidden>
-        <h2>🛒 Your Order</h2>
-
-        <div class="sel-item">
-          <div>
-            <div class="sel-name" id="selName">-</div>
-            <div class="sel-unit" id="selUnit">-</div>
-          </div>
-        </div>
-
-        <div class="row" id="qtyRow">
-          <label>Quantity</label>
-          <div class="qty">
-            <button type="button" id="qMinus">−</button>
-            <input type="number" id="qty" value="1" min="1" max="99" inputmode="numeric">
-            <button type="button" id="qPlus">+</button>
-          </div>
-        </div>
-
-        <div class="total">
-          <span>Total Price</span>
-          <b id="totalPrice">0 Tk</b>
-        </div>
-
-        <div class="row col">
-          <label for="gameId">Free Fire Game ID (UID)</label>
-          <div class="uid-row">
-            <input type="text" id="gameId" placeholder="Example: 123456789" inputmode="numeric" maxlength="14">
-            <button type="button" id="checkUid">Check</button>
-          </div>
-          <div class="uid-result" id="uidResult"></div>
-        </div>
-
-        <h3>Payment Method</h3>
-        <div class="pay" id="payList"></div>
-
-        <!-- Payment select korle ei panel khule -->
-        <div class="pay-panel" id="payPanel" hidden>
-          <div class="pp-head">
-            <span class="pp-logo"><img id="ppLogo" alt=""></span>
-            <div><b id="ppName">-</b><small>Send Money korun</small></div>
-          </div>
-
-          <div class="pp-line">
-            <span>Amount</span>
-            <b id="payAmt">0 Tk</b>
-            <button type="button" id="copyAmt">Copy</button>
-          </div>
-          <div class="pp-line">
-            <span>Number</span>
-            <b id="payNum">-</b>
-            <button type="button" id="copyBtn">Copy</button>
-          </div>
-
-          <img id="ppQr" class="pp-qr" alt="QR" hidden>
-
-          <ol class="pp-steps" id="ppSteps"></ol>
-        </div>
-
-        <div class="row col">
-          <label for="sender">Je number theke pathiyechen</label>
-          <input type="tel" id="sender" placeholder="01XXXXXXXXX" inputmode="numeric" maxlength="11">
-        </div>
-        <div class="row col">
-          <label for="trx">Transaction ID (TrxID)</label>
-          <input type="text" id="trx" placeholder="Example: 9A7B6C5D4E">
-        </div>
-
-        <p class="err" id="err"></p>
-        <button class="submit" id="submitBtn" type="button">Order Confirm Korun</button>
-      </div>
+      <div id="orderTopup"></div>
     </section>
 
     <!-- ===== GUILD GLORY ===== -->
@@ -157,7 +87,12 @@
 
     <!-- ===== PROFILE LIKE ===== -->
     <section id="like" class="page">
-      <div class="soon"><div class="big">❤️</div><h2>Profile Like</h2><p>Coming Soon...</p></div>
+      <div class="notice">
+        <div class="notice-line">🆔 <b>REQUIRED:</b> GAME ID CODE ONLY</div>
+        <div class="notice-line">📌 <b>PRICE:</b> FIXED</div>
+      </div>
+      <div id="likeLists"></div>
+      <div id="orderLike"></div>
     </section>
 
   </main>
@@ -168,5 +103,4 @@
 <script src="config.js"></script>
 <script src="script.js"></script>
 </body>
-                          </html>
-                          
+</html>

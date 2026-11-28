@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sadik Store - Free Fire Topup</title>
+<meta name="theme-color" content="#0b0b17">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ================= HOME (landing) ================= -->
+<div id="home" class="view active">
+
+  <div class="home-bar" id="homeBar"></div>
+  <!-- Boro theke scroll korle chhoto hoye uporer bam kone lock hoy -->
+  <div class="fixed-title" id="fixedTitle">Sadik Store🔗</div>
+
+  <section class="hero">
+    <img class="hero-logo" id="heroLogo" alt="Sadik Store" hidden>
+    <p class="hero-sub">Free Fire Topup &bull; Guild Glory &bull; Profile Like</p>
+    <div class="scroll-hint"><span>Scroll Down</span><i>↓</i></div>
+  </section>
+
+  <section class="snake-wrap" id="snakeWrap">
+    <svg id="snakeSvg" aria-hidden="true">
+      <defs>
+        <linearGradient id="snakeGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#00e5ff"/>
+          <stop offset="0.5" stop-color="#ff7a00"/>
+          <stop offset="1" stop-color="#ff2d55"/>
+        </linearGradient>
+      </defs>
+      <path id="snakeBase" fill="none"/>
+      <path id="snakeGlow" fill="none"/>
+      <path id="snakeLine" fill="none" stroke="url(#snakeGrad)"/>
+      <circle id="snakeHead" r="11"/>
+    </svg>
+
+    <button class="snake-btn left"  data-go="topup"><span class="ic">💎</span><span class="tx">Topup<small>Diamond &amp; Pass</small></span></button>
+    <button class="snake-btn right" data-go="guild"><span class="ic">🏆</span><span class="tx">Guild Glory<small>Coming Soon</small></span></button>
+    <button class="snake-btn left"  data-go="like"><span class="ic">❤️</span><span class="tx">Profile Like<small>Coming Soon</small></span></button>
+  </section>
+
+  <footer>© 2026 Sadik Store &bull; All rights reserved</footer>
+</div>
+
+<!-- ================= APP ================= -->
+<div id="app" class="view">
+
+  <header class="topbar">
+    <div class="brand">
+      <button class="back" id="backHome" type="button" aria-label="Home">←</button>
+      <div class="logo-mark" id="appLogo">SS</div>
+      <div><h1>Sadik <span>Store</span></h1><small>Fast &bull; Trusted &bull; Cheap</small></div>
+    </div>
+  </header>
+
+  <nav class="tabs" id="tabs">
+    <button class="tab active" data-tab="topup">💎 Topup</button>
+    <button class="tab" data-tab="guild">🏆 Guild Glory</button>
+    <button class="tab" data-tab="like">❤️ Profile Like</button>
+  </nav>
+
+  <main>
+
+    <!-- ===== TOPUP ===== -->
+    <section id="topup" class="page active">
+
+      <div class="notice">
+        <div class="notice-line">🆔 <b>REQUIRED:</b> GAME ID CODE ONLY</div>
+        <div class="notice-line">📌 <b>PRICE:</b> FIXED</div>
+      </div>
+
+      <div id="lists"></div>
+
+      <div class="order" id="orderBox" hidden>
+        <h2>🛒 Your Order</h2>
+
+        <div class="sel-item">
+          <div>
+            <div class="sel-name" id="selName">-</div>
+            <div class="sel-unit" id="selUnit">-</div>
+          </div>
+        </div>
+
+        <div class="row" id="qtyRow">
+          <label>Quantity</label>
+          <div class="qty">
+            <button type="button" id="qMinus">−</button>
+            <input type="number" id="qty" value="1" min="1" max="99" inputmode="numeric">
+            <button type="button" id="qPlus">+</button>
+          </div>
+        </div>
+
+        <div class="total">
+          <span>Total Price</span>
+          <b id="totalPrice">0 Tk</b>
+        </div>
+
+        <div class="row col">
+          <label for="gameId">Free Fire Game ID (UID)</label>
+          <div class="uid-row">
+            <input type="text" id="gameId" placeholder="Example: 123456789" inputmode="numeric" maxlength="14">
+            <button type="button" id="checkUid">Check</button>
+          </div>
+          <div class="uid-result" id="uidResult"></div>
+        </div>
+
+        <h3>Payment Method</h3>
+        <div class="pay" id="payList"></div>
+
+        <!-- Payment select korle ei panel khule -->
+        <div class="pay-panel" id="payPanel" hidden>
+          <div class="pp-head">
+            <span class="pp-logo"><img id="ppLogo" alt=""></span>
+            <div><b id="ppName">-</b><small>Send Money korun</small></div>
+          </div>
+
+          <div class="pp-line">
+            <span>Amount</span>
+            <b id="payAmt">0 Tk</b>
+            <button type="button" id="copyAmt">Copy</button>
+          </div>
+          <div class="pp-line">
+            <span>Number</span>
+            <b id="payNum">-</b>
+            <button type="button" id="copyBtn">Copy</button>
+          </div>
+
+          <img id="ppQr" class="pp-qr" alt="QR" hidden>
+
+          <ol class="pp-steps" id="ppSteps"></ol>
+        </div>
+
+        <div class="row col">
+          <label for="sender">Je number theke pathiyechen</label>
+          <input type="tel" id="sender" placeholder="01XXXXXXXXX" inputmode="numeric" maxlength="11">
+        </div>
+        <div class="row col">
+          <label for="trx">Transaction ID (TrxID)</label>
+          <input type="text" id="trx" placeholder="Example: 9A7B6C5D4E">
+        </div>
+
+        <p class="err" id="err"></p>
+        <button class="submit" id="submitBtn" type="button">Order Confirm Korun</button>
+      </div>
+    </section>
+
+    <!-- ===== GUILD GLORY ===== -->
+    <section id="guild" class="page">
+      <div class="soon"><div class="big">🏆</div><h2>Guild Glory</h2><p>Coming Soon...</p></div>
+    </section>
+
+    <!-- ===== PROFILE LIKE ===== -->
+    <section id="like" class="page">
+      <div class="soon"><div class="big">❤️</div><h2>Profile Like</h2><p>Coming Soon...</p></div>
+    </section>
+
+  </main>
+
+  <footer>© 2026 Sadik Store &bull; All rights reserved</footer>
+</div>
+
+<script src="config.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

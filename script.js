@@ -42,19 +42,12 @@ LEVELUP.items.forEach(i => i.single = true);
 
 const ALL_GROUPS = [...GROUPS, MEMBERSHIP, LEVELUP];
 
-/* ---------- Like data ---------- */
-const LIKES = {
-  title: "❤️ Profile Like", icon: "❤️",
-  items: [
-    { name: "100 Like", label: "100 Like", price: 10, single: true },
-    { name: "200 Like", label: "200 Like", price: 20, single: true }
-  ]
-};
-
 /* ---------- Helpers ---------- */
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+let selected = null;
+let payment = null;
 
 async function copyText(text, btn) {
   try { await navigator.clipboard.writeText(text); }
@@ -74,10 +67,11 @@ $$(".tab").forEach(btn => btn.addEventListener("click", () => {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }));
 
-/* ---------- Package lists ---------- */
-function renderGroups(wrapEl, groups, onPick) {
-  wrapEl.innerHTML = "";
-  groups.forEach((g, gi) => {
+/* ---------- Render lists ---------- */
+function renderLists() {
+  const wrap = $("#lists");
+  wrap.innerHTML = "";
+  ALL_GROUPS.forEach((g, gi) => {
     const box = document.createElement("div");
     box.className = "group";
     if (!(g.title === "💎 Diamond" && gi > 0)) box.innerHTML = `<div class="group-title">${g.title}</div>`;
@@ -88,126 +82,49 @@ function renderGroups(wrapEl, groups, onPick) {
       b.type = "button";
       b.className = "item";
       b.innerHTML = `<span class="nm">${g.icon} ${it.label}</span><span class="pr">${it.price} Tk</span>`;
-      b.addEventListener("click", () => onPick(it, b));
+      b.addEventListener("click", () => selectItem(it, b));
       list.appendChild(b);
     });
     box.appendChild(list);
-    wrapEl.appendChild(box);
+    wrap.appendChild(box);
   });
 }
-function markSelected(wrapEl, el) {
-  $$(".item", wrapEl).forEach(x => x.classList.toggle("selected", x === el));
+
+function selectItem(it, el) {
+  selected = it;
+  $$(".item").forEach(x => x.classList.remove("selected"));
+  el.classList.add("selected");
+  $("#qty").value = 1;
+  $("#qtyRow").hidden = !!it.single;
+  $("#selName").textContent = it.name;
+  $("#selUnit").textContent = "Unit price: " + it.price + " Tk";
+  updateTotal();
+  const box = $("#orderBox");
+  box.hidden = false;
+  setTimeout(() => box.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
 }
 
-/* =====================================================
-   ORDER FORM (Topup ar Like — duto-te ekoi form)
-   UID add -> payment -> TrxID -> WhatsApp
-   ===================================================== */
-function createOrder(root, kind) {
-  root.innerHTML = `
-  <div class="order" hidden>
-    <h2>🛒 Your Order</h2>
+/* ---------- Quantity / Total ---------- */
+function getQty() {
+  if (selected && selected.single) return 1;
+  let q = parseInt($("#qty").value, 10);
+  if (isNaN(q) || q < 1) q = 1;
+  if (q > 99) q = 99;
+  return q;
+}
+function total() { return selected ? selected.price * getQty() : 0; }
+function updateTotal() {
+  $("#totalPrice").textContent = total() + " Tk";
+  renderPayPanel();
+}
+$("#qMinus").onclick = () => { $("#qty").value = Math.max(1, getQty() - 1); updateTotal(); };
+$("#qPlus").onclick  = () => { $("#qty").value = Math.min(99, getQty() + 1); updateTotal(); };
+$("#qty").addEventListener("input", () => { if ($("#qty").value !== "") $("#qty").value = getQty(); updateTotal(); });
+$("#qty").addEventListener("blur", () => { $("#qty").value = getQty(); updateTotal(); });
 
-    <div class="sel-item">
-      <div><div class="sel-name">-</div><div class="sel-unit">-</div></div>
-    </div>
-
-    <div class="row qty-row">
-      <label>Quantity</label>
-      <div class="qty">
-        <button type="button" class="q-minus">−</button>
-        <input type="number" class="q-in" value="1" min="1" max="99" inputmode="numeric">
-        <button type="button" class="q-plus">+</button>
-      </div>
-    </div>
-
-    <div class="total"><span>Total Price</span><b class="t-price">0 Tk</b></div>
-
-    <div class="step"><span class="n">1</span>Free Fire Game ID (UID)</div>
-    <div class="row col">
-      <div class="uid-row">
-        <input type="text" class="uid-in" placeholder="Example: 123456789" inputmode="numeric" maxlength="14">
-        <button type="button" class="uid-add">Add</button>
-      </div>
-      <div class="uid-result"></div>
-    </div>
-
-    <div class="step"><span class="n">2</span>Payment Method</div>
-    <div class="pay"></div>
-
-    <div class="pay-panel" hidden>
-      <div class="pp-head">
-        <span class="pp-logo"><img class="pp-img" alt=""></span>
-        <div><b class="pp-name">-</b><small>Send Money korun</small></div>
-      </div>
-      <div class="pp-line"><span>Amount</span><b class="pay-amt">0 Tk</b><button type="button" class="copy-amt">Copy</button></div>
-      <div class="pp-line"><span>Number</span><b class="pay-num">-</b><button type="button" class="copy-num">Copy</button></div>
-      <img class="pp-qr" alt="QR" hidden>
-      <ol class="pp-steps"></ol>
-    </div>
-
-    <div class="step"><span class="n">3</span>Payment kora hoye gele</div>
-    <div class="row col">
-      <label>Je number theke pathiyechen</label>
-      <input type="tel" class="sender" placeholder="01XXXXXXXXX" inputmode="numeric" maxlength="11">
-    </div>
-    <div class="row col">
-      <label>Transaction ID (TrxID)</label>
-      <input type="text" class="trx" placeholder="Example: 9A7B6C5D4E">
-    </div>
-
-    <p class="err"></p>
-    <button class="submit" type="button">Order Confirm Korun</button>
-
-    <div class="wa-note" hidden>
-      ✅ <b>WhatsApp khule gechhe.</b> Message ta ekbar <b>Send</b> chapun, tahole order amar kache pouchabe.<br>
-      WhatsApp khule nai? <a href="#" target="_blank" rel="noopener">Ekhane chapun</a>
-    </div>
-  </div>`;
-
-  const box = $(".order", root);
-  const q = s => $(s, box);
-  let selected = null, payment = null, uid = null;
-
-  /* ---- quantity / total ---- */
-  const qtyIn = q(".q-in");
-  function getQty() {
-    if (selected && selected.single) return 1;
-    let n = parseInt(qtyIn.value, 10);
-    if (isNaN(n) || n < 1) n = 1;
-    return Math.min(99, n);
-  }
-  const total = () => selected ? selected.price * getQty() : 0;
-  function updateTotal() {
-    q(".t-price").textContent = total() + " Tk";
-    renderPanel();
-  }
-  q(".q-minus").onclick = () => { qtyIn.value = Math.max(1, getQty() - 1); updateTotal(); };
-  q(".q-plus").onclick  = () => { qtyIn.value = Math.min(99, getQty() + 1); updateTotal(); };
-  qtyIn.addEventListener("input", () => { if (qtyIn.value !== "") qtyIn.value = getQty(); updateTotal(); });
-  qtyIn.addEventListener("blur", () => { qtyIn.value = getQty(); updateTotal(); });
-
-  /* ---- UID add ---- */
-  const uidIn = q(".uid-in"), uidBtn = q(".uid-add"), uidRes = q(".uid-result");
-  function uidMsg(cls, html) { uidRes.className = "uid-result " + cls; uidRes.innerHTML = html; }
-  uidIn.addEventListener("input", () => { uidIn.value = uidIn.value.replace(/\D/g, ""); uidMsg("", ""); });
-  uidIn.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); uidBtn.click(); } });
-  uidBtn.onclick = () => {
-    if (uid) {                                   // "Change" chaple abar edit
-      uid = null; uidIn.readOnly = false;
-      uidBtn.textContent = "Add"; uidBtn.classList.remove("added");
-      uidMsg("", ""); uidIn.focus();
-      return;
-    }
-    const v = uidIn.value.trim();
-    if (!/^\d{6,14}$/.test(v)) return uidMsg("bad", "❌ Sothik UID din (6 theke 14 digit, shudhu number).");
-    uid = v; uidIn.readOnly = true;
-    uidBtn.textContent = "Change"; uidBtn.classList.add("added");
-    uidMsg("ok", `✅ UID added: <b>${esc(v)}</b>`);
-  };
-
-  /* ---- payment ---- */
-  const payWrap = q(".pay");
+/* ---------- Payment ---------- */
+function renderPay() {
+  const wrap = $("#payList");
   Object.entries(CONFIG.payments).forEach(([key, p]) => {
     const b = document.createElement("button");
     b.type = "button";
@@ -215,116 +132,169 @@ function createOrder(root, kind) {
     b.dataset.p = key;
     b.style.setProperty("--pc", p.color || "#ff7a00");
 
-    const lg = document.createElement("span");
-    lg.className = "lg";
+    const box = document.createElement("span");
+    box.className = "lg";
+
+    // Logo khuje: config e deya path -> bkash.png (same folder) -> img/bkash.png
     const cands = [p.logo, key + ".png", "img/" + key + ".png"].filter((v, i, a) => v && a.indexOf(v) === i);
     let ci = 0;
     const img = new Image();
     img.alt = p.name;
-    img.onload = () => { p._logo = cands[ci]; if (payment === key) renderPanel(); };
+    img.onload = () => { p._logo = cands[ci]; };
     img.onerror = () => {
       ci++;
-      if (ci < cands.length) img.src = cands[ci];
-      else { lg.classList.add("fallback"); lg.textContent = p.name[0]; }
+      if (ci < cands.length) { img.src = cands[ci]; }
+      else { box.classList.add("fallback"); box.textContent = p.name[0]; }
     };
     img.src = cands[0];
-    lg.appendChild(img);
+    box.appendChild(img);
 
-    b.appendChild(lg);
+    b.appendChild(box);
     b.appendChild(document.createTextNode(p.name));
     b.onclick = () => {
       payment = key;
-      $$(".pm", box).forEach(x => x.classList.toggle("active", x === b));
-      renderPanel(true);
+      $$(".pm").forEach(x => x.classList.toggle("active", x === b));
+      renderPayPanel(true);
     };
-    payWrap.appendChild(b);
+    wrap.appendChild(b);
   });
+}
 
-  function renderPanel(scroll) {
-    const panel = q(".pay-panel");
-    if (!payment) { panel.hidden = true; return; }
-    const p = CONFIG.payments[payment];
-    const amt = total() + " Tk";
-    panel.hidden = false;
-    panel.style.setProperty("--pc", p.color || "#ff7a00");
-    q(".pp-name").textContent = p.name;
-    const logo = q(".pp-img");
-    if (p._logo) { logo.src = p._logo; logo.parentElement.style.display = ""; }
-    else logo.parentElement.style.display = "none";
-    q(".pay-amt").textContent = amt;
-    q(".pay-num").textContent = p.number;
-    const qr = q(".pp-qr");
-    if (p.qr) { qr.src = p.qr; qr.hidden = false; } else qr.hidden = true;
-    q(".pp-steps").innerHTML = [
-      `${esc(p.name)} app open korun${p.ussd ? ` (ba <b>${esc(p.ussd)}</b> dial korun)` : ""}`,
-      `<b>Send Money</b> select korun`,
-      `Number din: <b>${esc(p.number)}</b>`,
-      `Amount din: <b>${esc(amt)}</b>`,
-      `PIN diye confirm korun`,
-      `Transaction ID (TrxID) niche likhun`
-    ].map(s => `<li>${s}</li>`).join("");
-    if (scroll) setTimeout(() => panel.scrollIntoView({ behavior: "smooth", block: "nearest" }), 60);
+function renderPayPanel(scroll) {
+  const panel = $("#payPanel");
+  if (!payment) { panel.hidden = true; return; }
+  const p = CONFIG.payments[payment];
+  const amt = total() + " Tk";
+
+  panel.hidden = false;
+  panel.style.setProperty("--pc", p.color || "#ff7a00");
+  $("#ppName").textContent = p.name;
+  const logo = $("#ppLogo");
+  if (p._logo) { logo.src = p._logo; logo.parentElement.style.display = ""; }
+  else { logo.parentElement.style.display = "none"; }
+  $("#payAmt").textContent = amt;
+  $("#payNum").textContent = p.number;
+
+  const qr = $("#ppQr");
+  if (p.qr) { qr.src = p.qr; qr.hidden = false; } else { qr.hidden = true; }
+
+  $("#ppSteps").innerHTML = [
+    `${esc(p.name)} app open korun${p.ussd ? ` (ba <b>${esc(p.ussd)}</b> dial korun)` : ""}`,
+    `<b>Send Money</b> select korun`,
+    `Number din: <b>${esc(p.number)}</b>`,
+    `Amount din: <b>${esc(amt)}</b>`,
+    `PIN diye confirm korun`,
+    `Transaction ID (TrxID) niche likhun`
+  ].map(s => `<li>${s}</li>`).join("");
+
+  if (scroll) setTimeout(() => panel.scrollIntoView({ behavior: "smooth", block: "nearest" }), 60);
+}
+$("#copyBtn").onclick = e => copyText($("#payNum").textContent, e.currentTarget);
+$("#copyAmt").onclick = e => copyText(String(total()), e.currentTarget);
+
+/* ---------- Input filters ---------- */
+$("#sender").addEventListener("input", e => e.target.value = e.target.value.replace(/\D/g, ""));
+
+/* ---------- UID Checker ---------- */
+// uidState: null | {uid, status: "ok"|"bad"|"unknown", name?}
+let uidState = null;
+
+function deepFind(obj, keys) {
+  const want = keys.map(k => k.toLowerCase());
+  const stack = [obj];
+  while (stack.length) {
+    const cur = stack.shift();
+    if (cur && typeof cur === "object") {
+      for (const [k, v] of Object.entries(cur)) {
+        if (want.includes(k.toLowerCase()) && (typeof v === "string" || typeof v === "number") && String(v).trim() !== "") return v;
+        if (v && typeof v === "object") stack.push(v);
+      }
+    }
   }
-  q(".copy-num").onclick = e => copyText(q(".pay-num").textContent, e.currentTarget);
-  q(".copy-amt").onclick = e => copyText(String(total()), e.currentTarget);
+  return null;
+}
+function setUidResult(cls, html) {
+  const el = $("#uidResult");
+  el.className = "uid-result " + cls;
+  el.innerHTML = html;
+}
 
-  q(".sender").addEventListener("input", e => e.target.value = e.target.value.replace(/\D/g, ""));
+$("#gameId").addEventListener("input", e => {
+  e.target.value = e.target.value.replace(/\D/g, "");
+  uidState = null;
+  setUidResult("", "");
+});
 
-  /* ---- submit -> WhatsApp ---- */
-  q(".submit").onclick = () => {
-    const err = q(".err");
-    const sender = q(".sender").value.trim();
-    const trx = q(".trx").value.trim();
-    err.textContent = "";
-    if (!selected)                 return err.textContent = "Age ekta package select korun.";
-    if (!uid)                      return err.textContent = "UID likhe 'Add' button chapun.";
-    if (!payment)                  return err.textContent = "Payment method select korun.";
-    if (!/^01\d{9}$/.test(sender)) return err.textContent = "Sothik 11 digit number din (01XXXXXXXXX).";
-    if (trx.length < 6)            return err.textContent = "Transaction ID din.";
+$("#checkUid").onclick = async () => {
+  const uid = $("#gameId").value.trim();
+  if (uid.length < 6) return setUidResult("bad", "❌ Sothik UID din.");
+  const btn = $("#checkUid");
+  btn.disabled = true;
+  setUidResult("load", "⏳ Checking...");
+  try {
+    const r = await fetch(`${CONFIG.uidApi}?uid=${encodeURIComponent(uid)}`);
+    let data = null;
+    try { data = await r.json(); } catch (e) {}
 
-    const msg =
-`🛒 *NEW ORDER* (${kind})
+    if (r.ok && data) {
+      const info = data.AccountInfo || data;
+      const name = info.AccountName || deepFind(data, ["AccountName", "nickname", "name"]);
+      const level = info.AccountLevel ?? deepFind(data, ["AccountLevel", "level"]);
+      const region = info.AccountRegion || "";
+      if (name) {
+        uidState = { uid, status: "ok", name: String(name) };
+        setUidResult("ok", `✅ ${esc(name)}${level ? " &bull; Level " + esc(level) : ""}${region ? " &bull; " + esc(region) : ""}`);
+      } else {
+        uidState = { uid, status: "bad" };
+        setUidResult("bad", "❌ Ei UID er player paoa jay nai.");
+      }
+    } else if ([400, 402, 404].includes(r.status)) {
+      uidState = { uid, status: "bad" };
+      setUidResult("bad", "❌ UID sothik na ba player paoa jay nai.");
+    } else {
+      uidState = { uid, status: "unknown" };
+      setUidResult("warn", "⚠️ UID check server ekhon kaj korche na. UID ta nijer chokhe ekbar dekhe nin, tarpor order korte paren.");
+    }
+  } catch (e) {
+    uidState = { uid, status: "unknown" };
+    setUidResult("warn", "⚠️ UID check kora jay nai (connection problem). UID ta ekbar dekhe nin, tarpor order korte paren.");
+  } finally {
+    btn.disabled = false;
+  }
+};
+
+/* ---------- Submit ---------- */
+$("#submitBtn").onclick = () => {
+  const err = $("#err");
+  const uid = $("#gameId").value.trim();
+  const sender = $("#sender").value.trim();
+  const trx = $("#trx").value.trim();
+  const st = uidState && uidState.uid === uid ? uidState.status : null;
+
+  err.textContent = "";
+  if (!selected)                  return err.textContent = "Age ekta package select korun.";
+  if (uid.length < 6)             return err.textContent = "Sothik Game ID din (shudhu number).";
+  if (st === "bad")               return err.textContent = "Ei UID thik na. Sothik UID diye abar Check korun.";
+  if (CONFIG.requireUidCheck && st !== "ok") return err.textContent = "Age UID 'Check' button chepe verify korun.";
+  if (!payment)                   return err.textContent = "Payment method select korun.";
+  if (!/^01\d{9}$/.test(sender))  return err.textContent = "Sothik 11 digit number din (01XXXXXXXXX).";
+  if (trx.length < 6)             return err.textContent = "Transaction ID din.";
+
+  const nameLine = st === "ok" ? `👤 Name: ${uidState.name}` : "⚠️ UID verify hoy nai";
+  const msg =
+`🛒 *NEW ORDER*
 ━━━━━━━━━━━━
 📦 Package: ${selected.name}
 🔢 Quantity: ${getQty()}
 💰 Total: ${total()} Tk
 🆔 Game ID: ${uid}
+${nameLine}
 💳 Method: ${CONFIG.payments[payment].name}
 📱 Sender: ${sender}
 🧾 TrxID: ${trx}`;
 
-    const url = `https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(msg)}`;
-    const w = window.open(url, "_blank");
-    if (!w) window.location.href = url;          // popup block hole shorashori
-    const note = q(".wa-note");
-    note.hidden = false;
-    $("a", note).href = url;
-    setTimeout(() => note.scrollIntoView({ behavior: "smooth", block: "nearest" }), 80);
-  };
-
-  return {
-    select(it) {
-      selected = it;
-      qtyIn.value = 1;
-      q(".qty-row").hidden = !!it.single;
-      q(".sel-name").textContent = it.name;
-      q(".sel-unit").textContent = "Unit price: " + it.price + " Tk";
-      box.hidden = false;
-      updateTotal();
-      setTimeout(() => box.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
-    }
-  };
-}
-
-function initOrders() {
-  const topup = createOrder($("#orderTopup"), "Topup");
-  const topupList = $("#lists");
-  renderGroups(topupList, ALL_GROUPS, (it, el) => { markSelected(topupList, el); topup.select(it); });
-
-  const like = createOrder($("#orderLike"), "Profile Like");
-  const likeList = $("#likeLists");
-  renderGroups(likeList, [LIKES], (it, el) => { markSelected(likeList, el); like.select(it); });
-}
+  window.open(`https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(msg)}`, "_blank");
+};
 
 /* =====================================================
    HOME: snake + sticky title  (smooth version)
@@ -512,4 +482,46 @@ function zoomOpen(btn) {
   document.body.appendChild(fx);
   ic.style.visibility = "hidden";
 
-  const dx = window.innerWidth / 2 - cx, dy = window.innerHeig
+  const dx = window.innerWidth / 2 - cx, dy = window.innerHeight / 2 - cy;
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    fx.classList.add("go");
+    g.style.transform = `translate(-50%,-50%) translate(${dx}px,${dy}px) scale(9)`;
+  }));
+
+  setTimeout(() => {
+    openApp(btn.dataset.go);
+    ic.style.visibility = "";
+    g.style.transform = `translate(-50%,-50%) translate(${dx}px,${dy}px) scale(20)`;
+    g.style.opacity = "0";
+    fx.style.opacity = "0";
+    fx.style.pointerEvents = "none";
+    setTimeout(() => { fx.remove(); zooming = false; }, 550);
+  }, 700);
+}
+$$(".snake-btn").forEach(b => b.addEventListener("click", () => zoomOpen(b)));
+
+$("#backHome").onclick = () => {
+  $("#app").classList.remove("active");
+  $("#home").classList.add("active");
+  buildSnake();
+  window.scrollTo(0, homeScroll);
+  render();
+};
+
+/* ---------- Site logo (auto): logo.png upload korlei boshe jabe ---------- */
+(function () {
+  const cands = ["logo.png", "logo.webp", "logo.jpg", "logo.jpeg", "logo.svg", "img/logo.png"];
+  let i = 0;
+  const im = new Image();
+  im.onload = () => {
+    const src = cands[i];
+    hLogo.src = src; hLogo.hidden = false;                      // home page er upore
+    const a = $("#appLogo");                                    // app header e SS er jaygay
+    a.innerHTML = ""; a.classList.add("has-img");
+    const x = new Image(); x.src = src; x.alt = "Sadik Store"; a.appendChild(x);
+    let fav = document.querySelector('link[rel="icon"]');       // browser tab icon
+    if (!fav) { fav = document.createElement("link"); fav.rel = "icon"; document.head.appendChild(fav); }
+    fav.href = src;
+    measure(); render();
+  };
+  im.onerror = () => { i++; if (i < cands.length)
